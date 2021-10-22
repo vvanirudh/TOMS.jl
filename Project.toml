@@ -1,0 +1,13 @@
+name = "Dalinar"
+uuid = "a5159adb-dd7a-4dd5-9cc5-22beaf5d8a55"
+authors = ["Anirudh Vemula <vvanirudh@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
