@@ -108,3 +108,16 @@ function render(gridworld::Gridworld, state::GridworldState)
         display(current_grid)
     end
 end
+
+# ----------------------------------------------- #
+function create_example_gridworld()
+    size = 1000
+    grid = fill(0, (size, size))
+    grid[Int(floor(size/4)):size, Int(floor(size/2))] .= 1
+    grid[Int(floor(size/2)), Int(floor(size/2))+2:end] .= 1
+
+    start_state = GridworldState(1, 1)
+    goal_state = GridworldState(size, size)
+
+    Gridworld(grid, false, start_state, goal_state)
+end

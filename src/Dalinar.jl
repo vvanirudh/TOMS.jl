@@ -1,34 +1,33 @@
 module Dalinar
 
-include("mdp/mdp.jl")
+abstract type State end
+abstract type Action end
+abstract type Planner end
+abstract type Parameters end
+
 include("graph/astar.jl")
+# --------- gridworld ------------------
 include("env/gridworld.jl")
 include("planner/gridworld_planner.jl")
+include("agent/gridworld_agent.jl")
+# --------- mountain car ---------------
+include("env/mountain_car.jl")
+include("planner/mountaincar_planner.jl")
+include("agent/mountaincar_agent.jl")
 
 function gridworld_main()
-    size = 1000
-    grid = fill(0, (size, size))
-    grid[Int(floor(size/4)):size, Int(floor(size/2))] .= 1
-    grid[Int(floor(size/2)), Int(floor(size/2))+2:end] .= 1
+    gridworld = create_example_gridworld()
+    planner = GridworldPlanner(gridworld, 100)
+    agent = GridworldAgent(gridworld, planner)
+    run(agent)
+end
 
-    start_state = GridworldState(1, 1)
-    goal_state = GridworldState(size, size)
-
-    gridworld = Gridworld(grid, false, start_state, goal_state)
-    planner = GridworldPlanner(gridworld, 2)
-
-    state = init(gridworld)
-    iteration = 0
-    while !checkGoal(gridworld, state)
-        iteration += 1
-        # println("Iteration", iteration)
-        render(gridworld, state)
-        best_action, info = act(planner, state)
-        updateResiduals!(planner, info)
-        state, cost = step(gridworld, state, best_action)
-    end
-    println("reached goal ", iteration)
-    render(gridworld, state)
+function mountaincar_main()
+    mountaincar = MountainCar(0.045)
+    model = MountainCar(0.0)
+    planner = MountainCarPlanner(model, 1000, mountaincar.true_params)
+    agent = MountainCarAgent(mountaincar, planner)
+    run(agent)
 end
 
 end
