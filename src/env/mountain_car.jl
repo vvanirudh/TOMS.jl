@@ -87,15 +87,15 @@ function step(mountaincar::MountainCar, disc_state::MountainCarDiscState, action
     if mountaincar.rock_c != 0
         if sign(state.position - mountaincar.rock_position) != sign(next_state.position - mountaincar.rock_position)
             if state.speed > 0
-                slip = max(-mountaincar.rock_c, -state.speed)
+                slip = max(-mountaincar.rock_c, -next_state.speed)
             else
-                slip = min(mountaincar.rock_c, state.speed)
+                slip = min(mountaincar.rock_c, next_state.speed)
             end
         end
     end
     next_slipped_state = MountainCarState(next_state.position, next_state.speed + slip)
-    next_disc_state = cont_state_to_disc(mountaincar, next_slipped_state)
-    return next_disc_state, cost
+    next_slipped_disc_state = cont_state_to_disc(mountaincar, next_slipped_state)
+    return next_slipped_disc_state, cost
 end
 
 function getSuccessor(mountaincar::MountainCar, disc_state::MountainCarDiscState, action::MountainCarAction, params::MountainCarParameters)

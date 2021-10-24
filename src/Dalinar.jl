@@ -30,4 +30,12 @@ function mountaincar_main()
     run(agent)
 end
 
+function mountaincar_cmax_main()
+    mountaincar = MountainCar(0.045)
+    model = MountainCar(0.0)
+    cmax_planner = MountainCarCMAXPlanner(model, 1000, mountaincar.true_params)
+    cmax_agent = MountainCarCMAXAgent(mountaincar, cmax_planner)
+    run(cmax_agent)
+end
+
 end
