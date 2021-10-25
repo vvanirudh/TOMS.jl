@@ -107,6 +107,7 @@ end
 
 function getBestAction(start_node::Node, best_node::Node)
     if start_node == best_node
+        println("Should not reach this!")
         return nothing, [start_node.state, start_node.state]
     end
 

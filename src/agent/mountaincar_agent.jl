@@ -1,25 +1,32 @@
-struct MountainCarAgent
+# using Plots: plot
+struct MountainCarRTAAAgent
     mountaincar::MountainCar
     planner::MountainCarPlanner
 end
 
-function run(agent::MountainCarAgent; max_steps=1e5)
+function run(agent::MountainCarRTAAAgent; max_steps=1e5, save_heuristic=false, debug=false)
     state = init(agent.mountaincar)
     num_steps = 0
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
         num_steps += 1
-        # render(agent.mountaincar, state)
+        # plot(agent.mountaincar, state)
         best_action, info = act(agent.planner, state)
         updateResiduals!(agent.planner, info)
-        state, cost = step(agent.mountaincar, state, best_action, agent.mountaincar.true_params)
+        state, cost = step(agent.mountaincar, state, best_action, agent.mountaincar.true_params, debug=debug)
+        if debug
+            cont_state = disc_state_to_cont(agent.mountaincar, state)
+            println(cont_state.position, " ", cont_state.speed, " ", best_action.id)
+        end
     end
     if num_steps < max_steps
         println("Reached goal in ", num_steps, " steps")
     else
         println("Did not reach goal")
     end
-    # render(agent.mountaincar, state)
-    # saveHeuristic(agent.planner)
+    if save_heuristic
+        saveHeuristic(agent.planner)
+    end
+    num_steps
 end
 
 struct MountainCarCMAXAgent
@@ -50,4 +57,5 @@ function run(agent::MountainCarCMAXAgent; max_steps=1e5)
     else
         println("Did not reach goal")
     end
+    num_steps
 end
