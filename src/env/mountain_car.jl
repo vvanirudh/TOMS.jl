@@ -24,13 +24,19 @@ struct MountainCarParameters <: Parameters
     theta2::Float64
 end
 
+struct MountainCarTransition <: Transition 
+    initial_state::MountainCarDiscState
+    action::MountainCarAction
+    cost::Float64
+    final_state::MountainCarDiscState
+end
+
 struct MountainCar
     min_position::Float64
     max_position::Float64
     max_speed::Float64
     goal_position::Float64
     goal_speed::Float64
-    true_params::MountainCarParameters
     force::Float64
     position_discretization::Int64
     speed_discretization::Int64
@@ -42,7 +48,6 @@ struct MountainCar
 end
 
 function MountainCar(rock_c::Float64)
-    true_params = MountainCarParameters(-0.0025, 3)
     start_state = MountainCarState(-π/6, 0)
     position_discretization = 500
     speed_discretization = 500 # 250
@@ -56,7 +61,7 @@ function MountainCar(rock_c::Float64)
     position_grid_cell_size = (max_position - min_position) / position_discretization
     speed_grid_cell_size = (max_speed * 2) / speed_discretization
     MountainCar(min_position, max_position, max_speed, goal_position,
-        goal_speed, true_params, force, position_discretization,
+        goal_speed, force, position_discretization,
         speed_discretization, position_grid_cell_size,
         speed_grid_cell_size, start_state, 
         rock_c, rock_position)

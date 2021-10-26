@@ -6,6 +6,7 @@ abstract type State end
 abstract type Action end
 abstract type Planner end
 abstract type Parameters end
+abstract type Transition end
 
 include("graph/astar.jl")
 # --------- gridworld ------------------
@@ -25,13 +26,14 @@ include("env/mountain_car.jl")
 include("planner/mountaincar_planner.jl")
 include("agent/mountaincar_agent.jl")
 
+const true_params = MountainCarParameters(-0.0025, 3)
 const range_of_values = range(0.0, stop=0.1, length=20)
 
 function mountaincar_heuristic()
     rm(heuristic_path, force=true)
     mountaincar = MountainCar(0.0)
     model = MountainCar(0.0)
-    planner = MountainCarRTAAPlanner(model, 1000, model.true_params)
+    planner = MountainCarRTAAPlanner(model, 1000, true_params)
     for _ in 1:200
         agent = MountainCarRTAAAgent(mountaincar, planner)
         run(agent, save_heuristic=true)
@@ -44,7 +46,7 @@ function mountaincar_rtaa_main()
         println("Rock_c is ", rock_c)
         mountaincar = MountainCar(rock_c)
         model = MountainCar(0.0)
-        planner = MountainCarRTAAPlanner(model, 100, model.true_params)
+        planner = MountainCarRTAAPlanner(model, 100, true_params)
         agent = MountainCarRTAAAgent(mountaincar, planner)
         n_steps = run(agent)
         push!(rtaa_steps, n_steps)
@@ -58,7 +60,7 @@ function mountaincar_cmax_main()
         println("Rock_c is ", rock_c)
         mountaincar = MountainCar(rock_c)
         model = MountainCar(0.0)
-        cmax_planner = MountainCarCMAXPlanner(model, 100, model.true_params)
+        cmax_planner = MountainCarCMAXPlanner(model, 100, true_params)
         cmax_agent = MountainCarCMAXAgent(mountaincar, cmax_planner)
         n_steps = run(cmax_agent)
         push!(cmax_steps, n_steps)
@@ -72,7 +74,7 @@ function mountaincar_true_main()
         println("Rock_c is ", rock_c)
         mountaincar = MountainCar(rock_c)
         model = MountainCar(rock_c)
-        planner = MountainCarRTAAPlanner(model, 100, model.true_params)
+        planner = MountainCarRTAAPlanner(model, 100, true_params)
         agent = MountainCarRTAAAgent(mountaincar, planner)
         n_steps = run(agent)
         push!(true_steps, n_steps)
@@ -93,10 +95,20 @@ end
 
 
 function mountaincar_single_run_main()
-    mountaincar = MountainCar(0.1)
-    model = MountainCar(0.1)
-    planner = MountainCarPlanner(model, 100, model.true_params)
-    agent = MountainCarRTAAAgent(mountaincar, planner)
+    mountaincar = MountainCar(0.08)
+    model = MountainCar(0.0)
+    planner = MountainCarCMAXPlanner(model, 1000, true_params)
+    agent = MountainCarCMAXAgent(mountaincar, planner)
+    run(agent)
+end
+
+function mountaincar_finite_model_class_main()
+    mountaincar = MountainCar(0.08)
+    model = MountainCar(0.0)
+    planners = Vector{MountainCarRTAAPlanner}()
+    push!(planners, MountainCarRTAAPlanner(model, 1000, true_params, load_heuristic=false))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 3.1), load_heuristic=false))
+    agent = MountainCarFiniteModelClassAgent(mountaincar, planners)
     run(agent, debug=true)
 end
 
