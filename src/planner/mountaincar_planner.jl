@@ -3,7 +3,7 @@ using JLD: save, load
 const heuristic_path = "/Users/avemula1/Developer/TAML/Dalinar/data/heuristic.jld"
 const inflated_cost = 1e6
 
-mutable struct MountainCarPlanner <: Planner
+mutable struct MountainCarRTAAPlanner <: Planner
     mountaincar::MountainCar
     num_expansions::Int64
     actions::Vector{MountainCarAction}
@@ -12,38 +12,38 @@ mutable struct MountainCarPlanner <: Planner
     params::MountainCarParameters
 end
 
-function MountainCarPlanner(mountaincar::MountainCar, num_expansions::Int64, params::MountainCarParameters)
+function MountainCarRTAAPlanner(mountaincar::MountainCar, num_expansions::Int64, params::MountainCarParameters)
     heuristic = loadHeuristic(mountaincar)
     residuals = fill(0.0, (mountaincar.position_discretization, mountaincar.speed_discretization))
-    MountainCarPlanner(mountaincar, num_expansions, getActions(mountaincar), residuals, heuristic, params)
+    MountainCarRTAAPlanner(mountaincar, num_expansions, getActions(mountaincar), residuals, heuristic, params)
 end
 
-function getHeuristic(planner::MountainCarPlanner, state::MountainCarDiscState)
+function getHeuristic(planner::MountainCarRTAAPlanner, state::MountainCarDiscState)
     heuristic = planner.heuristic[state.disc_position+1, state.disc_speed+1]
     # adding 1 for julia indexing
     residual = planner.residuals[state.disc_position+1, state.disc_speed+1]
     heuristic+residual
 end
 
-function getSuccessors(planner::MountainCarPlanner, state::MountainCarDiscState, action::MountainCarAction)
+function getSuccessors(planner::MountainCarRTAAPlanner, state::MountainCarDiscState, action::MountainCarAction)
     next_disc_state, cost = step(planner.mountaincar, state, action, planner.params)
     next_disc_state, cost
 end
 
-function checkGoal(planner::MountainCarPlanner, state::MountainCarDiscState)
+function checkGoal(planner::MountainCarRTAAPlanner, state::MountainCarDiscState)
     checkGoal(planner.mountaincar, state)
 end
 
-function getActions(planner::MountainCarPlanner, state::MountainCarDiscState)
+function getActions(planner::MountainCarRTAAPlanner, state::MountainCarDiscState)
     planner.actions
 end
 
-function act(planner::MountainCarPlanner, state::MountainCarDiscState)
+function act(planner::MountainCarRTAAPlanner, state::MountainCarDiscState)
     best_action, info = astar(planner, planner.num_expansions, state)
     return best_action, info
 end
 
-function updateResiduals!(planner::MountainCarPlanner, info::Dict)
+function updateResiduals!(planner::MountainCarRTAAPlanner, info::Dict)
     best_node_f = info["best_node_f"]
     for node in info["closed"]
         state = node.state
@@ -54,7 +54,7 @@ function updateResiduals!(planner::MountainCarPlanner, info::Dict)
     end
 end
 
-function saveHeuristic(planner::MountainCarPlanner)
+function saveHeuristic(planner::MountainCarRTAAPlanner)
     save(heuristic_path, "heuristic", planner.heuristic + planner.residuals)
 end
 
@@ -67,12 +67,12 @@ function loadHeuristic(mountaincar::MountainCar)
 end
 
 mutable struct MountainCarCMAXPlanner <: Planner
-    planner::MountainCarPlanner
+    planner::MountainCarRTAAPlanner
     discrepancy_sets::Dict{MountainCarAction, Set{MountainCarDiscState}}
 end
 
 function MountainCarCMAXPlanner(mountaincar::MountainCar, num_expansions::Int64, params::MountainCarParameters)
-    planner = MountainCarPlanner(mountaincar, num_expansions, params)
+    planner = MountainCarRTAAPlanner(mountaincar, num_expansions, params)
     discrepancy_sets = Dict{MountainCarAction, Set{MountainCarDiscState}}()
     for action in planner.actions
         discrepancy_sets[action] = Set{MountainCarDiscState}()

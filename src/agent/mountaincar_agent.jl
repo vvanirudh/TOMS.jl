@@ -1,7 +1,7 @@
 # using Plots: plot
 struct MountainCarRTAAAgent
     mountaincar::MountainCar
-    planner::MountainCarPlanner
+    planner::MountainCarRTAAPlanner
 end
 
 function run(agent::MountainCarRTAAAgent; max_steps=1e5, save_heuristic=false, debug=false)
