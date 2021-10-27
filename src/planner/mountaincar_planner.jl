@@ -24,7 +24,7 @@ function MountainCarRTAAPlanner(mountaincar::MountainCar, num_expansions::Int64,
 end
 
 function generateHeuristic(planner::MountainCarRTAAPlanner; max_steps=1e5)
-    planner.heuristic = fill(0.0, (planner.mountaincar.position_discretization, planner.mountaincar.speed_discretization))
+    clearHeuristic(planner)
     for i=1:number_of_runs_to_generate_heuristic
         state = init(planner.mountaincar)
         num_steps = 0
@@ -38,6 +38,14 @@ function generateHeuristic(planner::MountainCarRTAAPlanner; max_steps=1e5)
     end
     # println()
     planner.heuristic = deepcopy(planner.residuals)
+    clearResiduals(planner)
+end
+
+function clearHeuristic(planner::MountainCarRTAAPlanner)
+    planner.heuristic = fill(0.0, (planner.mountaincar.position_discretization, planner.mountaincar.speed_discretization))
+end
+
+function clearResiduals(planner::MountainCarRTAAPlanner)
     planner.residuals = fill(0.0, (planner.mountaincar.position_discretization, planner.mountaincar.speed_discretization))
 end
 
