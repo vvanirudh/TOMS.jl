@@ -72,16 +72,14 @@ end
 
 function MountainCarFiniteModelClassAgent(mountaincar::MountainCar, planners::Vector{MountainCarRTAAPlanner})
     transitions = Queue{MountainCarTransition}()
-    for planner in planners
-        generateHeuristic(planner)
-    end
     horizon = 100
     MountainCarFiniteModelClassAgent(mountaincar, planners, transitions, horizon)
 end
 
-function run(agent::MountainCarFiniteModelClassAgent; max_steps=1e5, debug=false)
+function run(agent::MountainCarFiniteModelClassAgent; max_steps=1e4, debug=false)
     state = init(agent.mountaincar)
     num_steps = 0
+    # values = evaluate_values(agent, state)
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
         num_steps += 1
         # Choose the best planner
@@ -126,11 +124,12 @@ function evaluate_bellman_losses(agent::MountainCarFiniteModelClassAgent)
             value_final = getHeuristic(planner, final_state)
             value_predicted = getHeuristic(planner, predicted_state)
             # TODO: Should this be squared error?
-            bellman_loss += abs(value_final - value_predicted)
+            # bellman_loss += abs(value_final - value_predicted)
+            bellman_loss += value_final - value_predicted
         end
-        if length(agent.transitions) > 0
-            bellman_loss /= length(agent.transitions)
-        end
+        # if length(agent.transitions) > 0
+        #     bellman_loss /= length(agent.transitions)
+        # end
         push!(bellman_losses, bellman_loss)
     end
     bellman_losses

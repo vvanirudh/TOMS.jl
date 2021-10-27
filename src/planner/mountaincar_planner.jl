@@ -2,7 +2,7 @@ using JLD: save, load
 
 const heuristic_path = "/Users/avemula1/Developer/TAML/Dalinar/data/heuristic.jld"
 const inflated_cost = 1e6
-const number_of_runs_to_generate_heuristic = 100
+const number_of_runs_to_generate_heuristic = 200
 
 mutable struct MountainCarRTAAPlanner <: Planner
     mountaincar::MountainCar
@@ -13,7 +13,7 @@ mutable struct MountainCarRTAAPlanner <: Planner
     params::MountainCarParameters
 end
 
-function MountainCarRTAAPlanner(mountaincar::MountainCar, num_expansions::Int64, params::MountainCarParameters; load_heuristic=true)
+function MountainCarRTAAPlanner(mountaincar::MountainCar, num_expansions::Int64, params::MountainCarParameters; load_heuristic=false)
     if load_heuristic
         heuristic = loadHeuristic(mountaincar)
     else
@@ -23,7 +23,8 @@ function MountainCarRTAAPlanner(mountaincar::MountainCar, num_expansions::Int64,
     MountainCarRTAAPlanner(mountaincar, num_expansions, getActions(mountaincar), residuals, heuristic, params)
 end
 
-function generateHeuristic(planner::MountainCarRTAAPlanner; max_steps=1e5)
+function generateHeuristic(planner::MountainCarRTAAPlanner; max_steps=1e4)
+    println("Generating Heuristic")
     clearHeuristic(planner)
     for i=1:number_of_runs_to_generate_heuristic
         state = init(planner.mountaincar)
@@ -39,6 +40,13 @@ function generateHeuristic(planner::MountainCarRTAAPlanner; max_steps=1e5)
     # println()
     planner.heuristic = deepcopy(planner.residuals)
     clearResiduals(planner)
+    println("Generated Heuristic")
+end
+
+function generateHeuristic(planners::Vector{MountainCarRTAAPlanner}; max_steps=1e4)
+    for planner in planners
+        generateHeuristic(planner, max_steps=max_steps)
+    end
 end
 
 function clearHeuristic(planner::MountainCarRTAAPlanner)
@@ -102,7 +110,7 @@ mutable struct MountainCarCMAXPlanner <: Planner
     discrepancy_sets::Dict{MountainCarAction, Set{MountainCarDiscState}}
 end
 
-function MountainCarCMAXPlanner(mountaincar::MountainCar, num_expansions::Int64, params::MountainCarParameters; load_heuristic=true)
+function MountainCarCMAXPlanner(mountaincar::MountainCar, num_expansions::Int64, params::MountainCarParameters; load_heuristic=false)
     planner = MountainCarRTAAPlanner(mountaincar, num_expansions, params, load_heuristic=load_heuristic)
     discrepancy_sets = Dict{MountainCarAction, Set{MountainCarDiscState}}()
     for action in planner.actions
@@ -111,8 +119,18 @@ function MountainCarCMAXPlanner(mountaincar::MountainCar, num_expansions::Int64,
     MountainCarCMAXPlanner(planner, discrepancy_sets)
 end
 
-function generateHeuristic(cmax_planner::MountainCarCMAXPlanner; max_steps=1e5)
-    generateHeuristic(cmax_planner.planner)
+function generateHeuristic(cmax_planner::MountainCarCMAXPlanner; max_steps=1e4)
+    generateHeuristic(cmax_planner.planner, max_steps=max_steps)
+end
+
+function generateHeuristic(planners::Vector{MountainCarCMAXPlanner}; max_steps=1e4)
+    for planner in planners
+        generateHeuristic(planner, max_steps=max_steps)
+    end
+end
+
+function clearResiduals(cmax_planner::MountainCarCMAXPlanner)
+    clearResiduals(cmax_planner.planner)
 end
 
 function getHeuristic(cmax_planner::MountainCarCMAXPlanner, state::MountainCarDiscState)

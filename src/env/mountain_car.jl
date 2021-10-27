@@ -53,10 +53,10 @@ function MountainCar(rock_c::Float64)
     speed_discretization = 500 # 250
     min_position = -1.2
     max_position = 0.6
-    max_speed = 0.07
+    max_speed = 0.2 # 0.07
     goal_position = 0.5
     goal_speed = 0
-    force = 0.0015 # 0.001
+    force = 0.001
     rock_position = 0.25
     position_grid_cell_size = (max_position - min_position) / position_discretization
     speed_grid_cell_size = (max_speed * 2) / speed_discretization
