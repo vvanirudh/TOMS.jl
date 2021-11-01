@@ -24,13 +24,19 @@ struct MountainCarParameters <: Parameters
     theta2::Float64
 end
 
+struct MountainCarTransition <: Transition 
+    initial_state::MountainCarDiscState
+    action::MountainCarAction
+    cost::Float64
+    final_state::MountainCarDiscState
+end
+
 struct MountainCar
     min_position::Float64
     max_position::Float64
     max_speed::Float64
     goal_position::Float64
     goal_speed::Float64
-    true_params::MountainCarParameters
     force::Float64
     position_discretization::Int64
     speed_discretization::Int64
@@ -42,13 +48,12 @@ struct MountainCar
 end
 
 function MountainCar(rock_c::Float64)
-    true_params = MountainCarParameters(-0.0025, 3)
-    start_state = MountainCarState(-0.5, 0)
+    start_state = MountainCarState(-π/6, 0)
     position_discretization = 500
-    speed_discretization = 250
+    speed_discretization = 500 # 250
     min_position = -1.2
     max_position = 0.6
-    max_speed = 0.07
+    max_speed = 0.2 # 0.07
     goal_position = 0.5
     goal_speed = 0
     force = 0.001
@@ -56,7 +61,7 @@ function MountainCar(rock_c::Float64)
     position_grid_cell_size = (max_position - min_position) / position_discretization
     speed_grid_cell_size = (max_speed * 2) / speed_discretization
     MountainCar(min_position, max_position, max_speed, goal_position,
-        goal_speed, true_params, force, position_discretization,
+        goal_speed, force, position_discretization,
         speed_discretization, position_grid_cell_size,
         speed_grid_cell_size, start_state, 
         rock_c, rock_position)
@@ -78,39 +83,33 @@ function checkGoal(mountaincar::MountainCar, state::MountainCarDiscState)
     checkGoal(mountaincar, disc_state_to_cont(mountaincar, state))
 end
 
-function step(mountaincar::MountainCar, disc_state::MountainCarDiscState, action::MountainCarAction, params::MountainCarParameters)
+function step(mountaincar::MountainCar, disc_state::MountainCarDiscState, action::MountainCarAction, params::MountainCarParameters; debug=false)
     state = disc_state_to_cont(mountaincar, disc_state)
-    next_disc_state, cost = getSuccessor(mountaincar, disc_state, action, params)
-    next_state = disc_state_to_cont(mountaincar, next_disc_state)
-
+    cost = getCost(mountaincar, state)
+    new_position = position_dynamics(mountaincar, state)
+    new_speed = speed_dynamics(mountaincar, state, action, params)
     slip = 0
-    if mountaincar.rock_c != 0
-        if sign(state.position - mountaincar.rock_position) != sign(next_state.position - mountaincar.rock_position)
-            if state.speed > 0
-                slip = max(-mountaincar.rock_c, -state.speed)
+    disc_rock_position = cont_state_to_disc(mountaincar, MountainCarState(mountaincar.rock_position, 0)).disc_position
+    new_disc_position = cont_state_to_disc(mountaincar, MountainCarState(new_position, 0)).disc_position
+    if mountaincar.rock_c > 0
+        # Check for rock in discrete grid to ensure that no discretization errors happen
+        if sign(disc_state.disc_position - disc_rock_position) != sign(new_disc_position - disc_rock_position)
+            if debug
+                println("Hit rock")
+            end
+            if new_speed > 0
+                slip = max(-mountaincar.rock_c, -new_speed)
             else
-                slip = min(mountaincar.rock_c, state.speed)
+                slip = min(mountaincar.rock_c, -new_speed)
             end
         end
     end
-    next_slipped_state = MountainCarState(next_state.position, next_state.speed + slip)
-    next_disc_state = cont_state_to_disc(mountaincar, next_slipped_state)
-    return next_disc_state, cost
-end
-
-function getSuccessor(mountaincar::MountainCar, disc_state::MountainCarDiscState, action::MountainCarAction, params::MountainCarParameters)
-    state = disc_state_to_cont(mountaincar, disc_state)
-    # IF already at goal; return absorbing state
-    if checkGoal(mountaincar, state)
-        return absorbing_state(mountaincar), 0.0
-    end
-
-    position = position_dynamics(mountaincar, state)
-    speed = speed_dynamics(mountaincar, state, action, params)
-    cost = getCost(mountaincar, state)
-    new_state = MountainCarState(position, speed)
-    new_disc_state = cont_state_to_disc(mountaincar, new_state)
-    return new_disc_state, cost
+    
+    slipped_speed = clamp(new_speed + slip, -mountaincar.max_speed, mountaincar.max_speed)
+    @assert abs(slipped_speed) <= abs(new_speed)
+    next_slipped_state = MountainCarState(new_position, slipped_speed)
+    next_slipped_disc_state = cont_state_to_disc(mountaincar, next_slipped_state)
+    return next_slipped_disc_state, cost
 end
 
 function position_dynamics(mountaincar::MountainCar, state::MountainCarState)
@@ -120,7 +119,8 @@ end
 
 function speed_dynamics(mountaincar::MountainCar, state::MountainCarState, action::MountainCarAction, params::MountainCarParameters)
     new_speed = state.speed + (2*action.id - 1) * mountaincar.force + cos(params.theta2 * state.position) * params.theta1
-    clamp(new_speed, -mountaincar.max_speed, mountaincar.max_speed)
+    # clamp(new_speed, -mountaincar.max_speed, mountaincar.max_speed)
+    new_speed
 end
 
 function getCost(mountaincar::MountainCar, state::MountainCarState)
@@ -134,10 +134,8 @@ end
 function cont_state_to_disc(mountaincar::MountainCar, state::MountainCarState)
     position = state.position - mountaincar.min_position
     speed = state.speed + mountaincar.max_speed
-    disc_position = max(min(cont_to_disc(position, mountaincar.position_grid_cell_size),
-        mountaincar.position_discretization-1), 0)
-    disc_speed = max(min(cont_to_disc(speed, mountaincar.speed_grid_cell_size),
-        mountaincar.speed_discretization-1), 0)
+    disc_position = clamp(cont_to_disc(position, mountaincar.position_grid_cell_size), 0, mountaincar.position_discretization-1)
+    disc_speed = clamp(cont_to_disc(speed, mountaincar.speed_grid_cell_size), 0, mountaincar.speed_discretization-1)
     MountainCarDiscState(disc_position, disc_speed)
 end
 
@@ -159,10 +157,8 @@ function disc_state_to_cont(mountaincar::MountainCar, state::MountainCarDiscStat
     disc_speed = state.disc_speed
     position = disc_to_cont(disc_position, mountaincar.position_grid_cell_size)
     speed = disc_to_cont(disc_speed, mountaincar.speed_grid_cell_size)
-    position = max(min(position + mountaincar.min_position, mountaincar.max_position),
-        mountaincar.min_position)
-    speed = max(min(speed - mountaincar.max_speed, mountaincar.max_speed),
-        -mountaincar.max_speed)
+    position = clamp(position + mountaincar.min_position, mountaincar.min_position, mountaincar.max_position)
+    speed = clamp(speed - mountaincar.max_speed, -mountaincar.max_speed, mountaincar.max_speed)
     MountainCarState(position, speed)
 end
 
@@ -170,7 +166,7 @@ function disc_to_cont(x::Int64, cell_size::Float64)
     x * cell_size
 end
 
-@recipe function render(mountaincar::MountainCar, disc_state::MountainCarDiscState)
+@recipe function f(mountaincar::MountainCar, disc_state::MountainCarDiscState)
     state = disc_state_to_cont(mountaincar, disc_state)
     legend := false
     xlims  := (mountaincar.min_position, mountaincar.max_position)
@@ -181,7 +177,7 @@ end
     # Mountain
     @series begin
         xs = range(mountaincar.min_position, stop=mountaincar.max_position, length=100)
-        ys = height.(xs)
+        ys = height_car.(xs)
         seriestype := :path
         linecolor --> :blue
         xs, ys
@@ -195,8 +191,8 @@ end
         θ = cos(3 * state.position)
         xs = [-car_width/2, -car_width/2, car_width/2, car_width/2]
         ys = [0, car_height, car_height, 0]
-        xs, ys = rotate(xs, ys, θ)
-        translate(xs, ys, [state.position, height(state.position)])
+        xs, ys = rotate_car(xs, ys, θ)
+        translate_car(xs, ys, [state.position, height_car(state.position)])
     end
 
     # Flag
@@ -204,17 +200,13 @@ end
         linecolor --> :red 
         seriestype := :path 
 
-        [mountaincar.goal_position, mountaincar.goal_position], [height(mountaincar.goal_position), height(mountaincar.goal_position) + flag_height]
+        [mountaincar.goal_position, mountaincar.goal_position], [height_car(mountaincar.goal_position), height_car(mountaincar.goal_position) + flag_height]
     end
 end
 
-function render(mountaincar::MountainCar, state::MountainCarDiscState)
-    render(mountaincar, disc_state_to_cont(mountaincar, state))
-end
-
-height(xs::Vector{Float64}) = sin(3 * xs) * 0.45 + 0.55
-rotate(xs::Vector{Float64}, ys::Vector{Float64}, θ::Float64) = 
+height_car(x::Float64) = sin(3 * x) * 0.45 + 0.55
+rotate_car(xs::Vector{Float64}, ys::Vector{Float64}, θ::Float64) = 
     xs.*cos(θ) .- ys.*sin(θ), ys.*cos(θ) + xs.*sin(θ)
 
-translate(xs::Vector{Float64}, ys::Vector{Float64}, t::Vector{Float64}) = 
+translate_car(xs::Vector{Float64}, ys::Vector{Float64}, t::Vector{Float64}) = 
     xs .+ t[1] + ys .+ t[2]
