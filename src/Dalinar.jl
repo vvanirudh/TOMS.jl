@@ -10,9 +10,9 @@ abstract type Transition end
 
 include("graph/astar.jl")
 # --------- gridworld ------------------
-include("env/gridworld.jl")
-include("planner/gridworld_planner.jl")
-include("agent/gridworld_agent.jl")
+include("env/gridworld/gridworld.jl")
+include("planner/gridworld/gridworld_planner.jl")
+include("agent/gridworld/gridworld_agent.jl")
 
 function gridworld_main()
     gridworld = create_example_gridworld()
@@ -22,9 +22,9 @@ function gridworld_main()
 end
 
 # --------- mountain car ---------------
-include("env/mountain_car.jl")
-include("planner/mountaincar_planner.jl")
-include("agent/mountaincar_agent.jl")
+include("env/mountain_car/mountain_car.jl")
+include("planner/mountain_car/mountain_car_planner.jl")
+include("agent/mountain_car/mountain_car_agent.jl")
 
 const true_params = MountainCarParameters(-0.0025, 3)
 const range_of_values = 0:0.005:0.045
