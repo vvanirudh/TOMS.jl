@@ -83,12 +83,11 @@ function mountaincar_all_main()
     rtaa_steps = mountaincar_rtaa_main()
     cmax_steps = mountaincar_cmax_main()
     true_steps = mountaincar_true_main()
-    # finite_model_class_steps = mountaincar_finite_model_class_main()
-    yticks = 0:1e2:1e4
-    plot(range_of_values, rtaa_steps, lw=3, label="RTAA*", yaxis=:log, yticks=yticks)
-    plot!(range_of_values, cmax_steps, lw=3, label="CMAX", yaxis=:log, yticks=yticks)
-    plot!(range_of_values, true_steps, lw=3, label="True", yaxis=:log, yticks=yticks)
-    # plot!(range_of_values, finite_model_class_steps, lw=3, label="Finite Model Class", yaxis=:log)
+    finite_model_class_steps = mountaincar_finite_model_class_main()
+    plot(range_of_values, rtaa_steps, lw=3, label="RTAA*", yaxis=:log)
+    plot!(range_of_values, cmax_steps, lw=3, label="CMAX", yaxis=:log)
+    plot!(range_of_values, true_steps, lw=3, label="True", yaxis=:log)
+    plot!(range_of_values, finite_model_class_steps, lw=3, label="Finite Model Class", yaxis=:log)
     xlabel!("Misspecification")
     ylabel!("Number of steps to reach goal")
 end
@@ -104,16 +103,25 @@ function mountaincar_single_run_main()
 end
 
 function mountaincar_finite_model_class_main()
-    mountaincar = MountainCar(0.02)
+    finite_model_class_steps = []
     model = MountainCar(0.0)
     planners = Vector{MountainCarRTAAPlanner}()
     push!(planners, MountainCarRTAAPlanner(model, 1000, true_params))
-    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 4)))
-    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.004, 3)))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 3.5)))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.003, 3)))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 2.5)))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.002, 3)))
     # push!(planners, MountainCarRTAAPlanner(mountaincar, 1000, true_params))
     generateHeuristic(planners)
-    agent = MountainCarFiniteModelClassAgent(mountaincar, planners)
-    run(agent, debug=true)
+    for rock_c in range_of_values
+        println("Rock_c is ", rock_c)
+        mountaincar = MountainCar(rock_c)
+        agent = MountainCarFiniteModelClassAgent(mountaincar, planners)
+        n_steps = run(agent, debug=false)
+        push!(finite_model_class_steps, n_steps)
+        clearResiduals(planners)
+    end
+    finite_model_class_steps
 end
 
 end

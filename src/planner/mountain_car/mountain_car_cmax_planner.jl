@@ -26,6 +26,12 @@ function clearResiduals(cmax_planner::MountainCarCMAXPlanner)
     clearResiduals(cmax_planner.planner)
 end
 
+function clearResiduals(planners::Vector{MountainCarCMAXPlanner})
+    for planner in planners
+        clearResiduals(planner)
+    end
+end
+
 function getHeuristic(cmax_planner::MountainCarCMAXPlanner, state::MountainCarDiscState)
     getHeuristic(cmax_planner.planner, state)
 end

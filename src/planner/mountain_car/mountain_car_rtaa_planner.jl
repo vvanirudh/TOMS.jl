@@ -59,6 +59,12 @@ function clearResiduals(planner::MountainCarRTAAPlanner)
     planner.residuals = fill(0.0, (planner.mountaincar.position_discretization, planner.mountaincar.speed_discretization))
 end
 
+function clearResiduals(planners::Vector{MountainCarRTAAPlanner})
+    for planner in planners
+        clearResiduals(planner)
+    end
+end
+
 function getHeuristic(planner::MountainCarRTAAPlanner, state::MountainCarDiscState)
     heuristic = planner.heuristic[state.disc_position+1, state.disc_speed+1]
     # adding 1 for julia indexing
