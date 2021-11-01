@@ -34,9 +34,9 @@ function run(agent::MountainCarFiniteModelClassAgent; max_steps=1e4, debug=false
         # step in env
         new_state, cost = step(agent.mountaincar, state, best_action, true_params)
         # Add transition to Queue
-        if length(agent.transitions) >= agent.horizon
-            dequeue!(agent.transitions)
-        end
+        # if length(agent.transitions) >= agent.horizon
+        #     dequeue!(agent.transitions)
+        # end
         enqueue!(agent.transitions, MountainCarTransition(state, best_action, cost, new_state))
         state = new_state
     end
@@ -60,8 +60,8 @@ function evaluate_bellman_losses(agent::MountainCarFiniteModelClassAgent)
             value_final = getHeuristic(planner, final_state)
             value_predicted = getHeuristic(planner, predicted_state)
             # TODO: Should this be squared error?
-            # bellman_loss += abs(value_final - value_predicted)
-            bellman_loss += value_final - value_predicted
+            bellman_loss += abs(value_final - value_predicted)
+            # bellman_loss += value_final - value_predicted
         end
         # if length(agent.transitions) > 0
         #     bellman_loss /= length(agent.transitions)
