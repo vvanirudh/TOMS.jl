@@ -23,8 +23,11 @@ end
 
 # --------- mountain car ---------------
 include("env/mountain_car/mountain_car.jl")
-include("planner/mountain_car/mountain_car_planner.jl")
-include("agent/mountain_car/mountain_car_agent.jl")
+include("planner/mountain_car/mountain_car_rtaa_planner.jl")
+include("planner/mountain_car/mountain_car_cmax_planner.jl")
+include("agent/mountain_car/mountain_car_rtaa_agent.jl")
+include("agent/mountain_car/mountain_car_cmax_agent.jl")
+include("agent/mountain_car/mountain_car_finite_model_class_agent.jl")
 
 const true_params = MountainCarParameters(-0.0025, 3)
 const range_of_values = 0:0.005:0.045
