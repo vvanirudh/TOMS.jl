@@ -6,7 +6,7 @@ struct MountainCarRTAAAgent
     planner::MountainCarRTAAPlanner
 end
 
-function run(agent::MountainCarRTAAAgent; max_steps=1e5, save_heuristic=false, debug=false)
+function run(agent::MountainCarRTAAAgent; max_steps=1e5, debug=false)
     state = init(agent.mountaincar)
     num_steps = 0
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
@@ -23,9 +23,6 @@ function run(agent::MountainCarRTAAAgent; max_steps=1e5, save_heuristic=false, d
         println("Reached goal in ", num_steps, " steps")
     else
         println("Did not reach goal")
-    end
-    if save_heuristic
-        saveHeuristic(agent.planner)
     end
     num_steps
 end

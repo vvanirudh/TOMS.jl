@@ -29,17 +29,6 @@ include("agent/mountaincar_agent.jl")
 const true_params = MountainCarParameters(-0.0025, 3)
 const range_of_values = 0:0.005:0.045
 
-function mountaincar_heuristic()
-    rm(heuristic_path, force=true)
-    mountaincar = MountainCar(0.0)
-    model = MountainCar(0.0)
-    planner = MountainCarRTAAPlanner(model, 1000, true_params)
-    for _ in 1:200
-        agent = MountainCarRTAAAgent(mountaincar, planner)
-        run(agent, save_heuristic=true)
-    end
-end
-
 function mountaincar_rtaa_main()
     rtaa_steps = []
     model = MountainCar(0.0)
@@ -112,13 +101,13 @@ function mountaincar_single_run_main()
 end
 
 function mountaincar_finite_model_class_main()
-    mountaincar = MountainCar(0.045)
+    mountaincar = MountainCar(0.02)
     model = MountainCar(0.0)
     planners = Vector{MountainCarRTAAPlanner}()
     push!(planners, MountainCarRTAAPlanner(model, 1000, true_params))
-    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 3.2)))
-    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0028, 3)))
-    push!(planners, MountainCarRTAAPlanner(mountaincar, 1000, true_params))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 4)))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.004, 3)))
+    # push!(planners, MountainCarRTAAPlanner(mountaincar, 1000, true_params))
     generateHeuristic(planners)
     agent = MountainCarFiniteModelClassAgent(mountaincar, planners)
     run(agent, debug=true)
