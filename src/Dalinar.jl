@@ -37,14 +37,14 @@ function mountaincar_rtaa_main()
     rtaa_steps = []
     model = MountainCar(0.0)
     planner = MountainCarRTAAPlanner(model, 1000, true_params)
-    generateHeuristic(planner)
+    generateHeuristic!(planner)
     for rock_c in range_of_values
         println("Rock_c is ", rock_c)
         mountaincar = MountainCar(rock_c)
         agent = MountainCarRTAAAgent(mountaincar, planner)
         n_steps = run(agent, max_steps=1e4)
         push!(rtaa_steps, n_steps)
-        clearResiduals(planner)
+        clearResiduals!(planner)
     end
     rtaa_steps
 end
@@ -53,14 +53,14 @@ function mountaincar_cmax_main()
     cmax_steps = []
     model = MountainCar(0.0)
     cmax_planner = MountainCarCMAXPlanner(model, 1000, true_params)
-    generateHeuristic(cmax_planner)
+    generateHeuristic!(cmax_planner)
     for rock_c in range_of_values
         println("Rock_c is ", rock_c)
         mountaincar = MountainCar(rock_c)
         cmax_agent = MountainCarCMAXAgent(mountaincar, cmax_planner)
         n_steps = run(cmax_agent, max_steps=1e4)
         push!(cmax_steps, n_steps)
-        clearResiduals(cmax_planner)
+        clearResiduals!(cmax_planner)
     end
     cmax_steps
 end
@@ -72,7 +72,7 @@ function mountaincar_true_main()
         mountaincar = MountainCar(rock_c)
         model = MountainCar(rock_c)
         planner = MountainCarRTAAPlanner(model, 1000, true_params)
-        generateHeuristic(planner)
+        generateHeuristic!(planner)
         agent = MountainCarRTAAAgent(mountaincar, planner)
         n_steps = run(agent, max_steps=1e4)
         push!(true_steps, n_steps)
@@ -86,11 +86,13 @@ function mountaincar_all_main()
     true_steps = mountaincar_true_main()
     finite_model_class_steps = mountaincar_finite_model_class_main()
     true_finite_model_class_steps = mountaincar_finite_model_class_main(true_model=true)
+    local_finite_model_class_steps = mountaincar_finite_model_class_main(local_agent=true)
     plot(range_of_values, rtaa_steps, lw=3, label="RTAA*", yaxis=:log, legend=:topleft)
     plot!(range_of_values, cmax_steps, lw=3, label="CMAX", yaxis=:log)
     plot!(range_of_values, true_steps, lw=3, label="True", yaxis=:log)
     plot!(range_of_values, finite_model_class_steps, lw=3, label="Finite Model Class", yaxis=:log)
     plot!(range_of_values, true_finite_model_class_steps, lw=3, label="Finite Model Class with true model", yaxis=:log)
+    plot!(range_of_values, local_finite_model_class_steps, lw=3, label="Finite Model Class with Local Data", yaxis=:log)
     xlabel!("Misspecification")
     ylabel!("Number of steps to reach goal")
 end
@@ -98,38 +100,41 @@ end
 
 function mountaincar_single_run_main()
     mountaincar = MountainCar(0.045)
-    model = MountainCar(0.045)
-    planner = MountainCarRTAAPlanner(model, 1000, true_params)
-    generateHeuristic(planner)
-    agent = MountainCarRTAAAgent(mountaincar, planner)
-    run(agent, debug=false)
+    model = MountainCar(0.0)
+    planner = MountainCarCMAXPlanner(model, 1000, true_params)
+    generateHeuristic!(planner)
+    agent = MountainCarCMAXAgent(mountaincar, planner)
+    run(agent)
 end
 
-function mountaincar_finite_model_class_main(;true_model=false)
+function mountaincar_finite_model_class_main(;true_model=false, local_agent=false)
     finite_model_class_steps = []
     model = MountainCar(0.0)
     planners = Vector{MountainCarRTAAPlanner}()
     push!(planners, MountainCarRTAAPlanner(model, 1000, true_params))
-    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 3.5)))
-    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.003, 3)))
-    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 2.5)))
-    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.002, 3)))
-    generateHeuristic(planners)
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 3.2)))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0027, 3)))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0025, 2.7)))
+    push!(planners, MountainCarRTAAPlanner(model, 1000, MountainCarParameters(-0.0023, 3)))
+    generateHeuristic!(planners)
     for rock_c in range_of_values
         println("Rock_c is ", rock_c)
         mountaincar = MountainCar(rock_c)
         if true_model
             planner = MountainCarRTAAPlanner(mountaincar, 1000, true_params)
             push!(planners, planner)
-            generateHeuristic(planners)
+            generateHeuristic!(planners)
         end
         agent = MountainCarFiniteModelClassAgent(mountaincar, planners)
+        if local_agent
+            agent = MountainCarFiniteModelClassLocalAgent(mountaincar, planners)
+        end
         n_steps = run(agent, debug=false)
         push!(finite_model_class_steps, n_steps)
         if true_model
             pop!(planners)
         end
-        clearResiduals(planners)
+        clearResiduals!(planners)
     end
     finite_model_class_steps
 end

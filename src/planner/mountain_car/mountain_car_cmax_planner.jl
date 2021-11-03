@@ -12,23 +12,23 @@ function MountainCarCMAXPlanner(mountaincar::MountainCar, num_expansions::Int64,
     MountainCarCMAXPlanner(planner, discrepancy_sets)
 end
 
-function generateHeuristic(cmax_planner::MountainCarCMAXPlanner; max_steps=1e4)
-    generateHeuristic(cmax_planner.planner, max_steps=max_steps)
+function generateHeuristic!(cmax_planner::MountainCarCMAXPlanner; max_steps=1e4)
+    generateHeuristic!(cmax_planner.planner, max_steps=max_steps)
 end
 
-function generateHeuristic(planners::Vector{MountainCarCMAXPlanner}; max_steps=1e4)
+function generateHeuristic!(planners::Vector{MountainCarCMAXPlanner}; max_steps=1e4)
     for planner in planners
-        generateHeuristic(planner, max_steps=max_steps)
+        generateHeuristic!(planner, max_steps=max_steps)
     end
 end
 
-function clearResiduals(cmax_planner::MountainCarCMAXPlanner)
-    clearResiduals(cmax_planner.planner)
+function clearResiduals!(cmax_planner::MountainCarCMAXPlanner)
+    clearResiduals!(cmax_planner.planner)
 end
 
-function clearResiduals(planners::Vector{MountainCarCMAXPlanner})
+function clearResiduals!(planners::Vector{MountainCarCMAXPlanner})
     for planner in planners
-        clearResiduals(planner)
+        clearResiduals!(planner)
     end
 end
 

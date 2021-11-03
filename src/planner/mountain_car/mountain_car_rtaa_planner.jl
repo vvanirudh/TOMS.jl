@@ -19,13 +19,13 @@ function MountainCarRTAAPlanner(mountaincar::MountainCar, num_expansions::Int64,
     MountainCarRTAAPlanner(mountaincar, num_expansions, getActions(mountaincar), residuals, heuristic, params)
 end
 
-function generateHeuristic(planner::MountainCarRTAAPlanner; max_steps=1e4)
+function generateHeuristic!(planner::MountainCarRTAAPlanner; max_steps=1e4)
     heuristic_path = getHeuristicFilePath(planner)
     if isfile(heuristic_path)
-        loadHeuristic(planner)
+        loadHeuristic!(planner)
     else
         println("Generating Heuristic")
-        clearHeuristic(planner)
+        clearHeuristic!(planner)
         for i=1:number_of_runs_to_generate_heuristic
             state = init(planner.mountaincar)
             num_steps = 0
@@ -39,29 +39,29 @@ function generateHeuristic(planner::MountainCarRTAAPlanner; max_steps=1e4)
         end
         # println()
         planner.heuristic = deepcopy(planner.residuals)
-        clearResiduals(planner)
+        clearResiduals!(planner)
         saveHeuristic(planner)
         println("Generated Heuristic")
     end
 end
 
-function generateHeuristic(planners::Vector{MountainCarRTAAPlanner}; max_steps=1e4)
+function generateHeuristic!(planners::Vector{MountainCarRTAAPlanner}; max_steps=1e4)
     for planner in planners
-        generateHeuristic(planner, max_steps=max_steps)
+        generateHeuristic!(planner, max_steps=max_steps)
     end
 end
 
-function clearHeuristic(planner::MountainCarRTAAPlanner)
+function clearHeuristic!(planner::MountainCarRTAAPlanner)
     planner.heuristic = fill(0.0, (planner.mountaincar.position_discretization, planner.mountaincar.speed_discretization))
 end
 
-function clearResiduals(planner::MountainCarRTAAPlanner)
+function clearResiduals!(planner::MountainCarRTAAPlanner)
     planner.residuals = fill(0.0, (planner.mountaincar.position_discretization, planner.mountaincar.speed_discretization))
 end
 
-function clearResiduals(planners::Vector{MountainCarRTAAPlanner})
+function clearResiduals!(planners::Vector{MountainCarRTAAPlanner})
     for planner in planners
-        clearResiduals(planner)
+        clearResiduals!(planner)
     end
 end
 
@@ -116,7 +116,7 @@ function getHeuristicFilePath(planner::MountainCarRTAAPlanner)
     data_path*heuristic_file_name
 end
 
-function loadHeuristic(planner::MountainCarRTAAPlanner)
+function loadHeuristic!(planner::MountainCarRTAAPlanner)
     heuristic_path = getHeuristicFilePath(planner)
     if isfile(heuristic_path)
         planner.heuristic = load(heuristic_path)["heuristic"]
