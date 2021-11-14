@@ -1,3 +1,21 @@
+# ------------------ Utils -----------------------------------------
+
+function getLeastKIndices(losses::Vector{Float64}, k::Int64)::Vector{Int64}
+    sorted_indices = sortperm(losses)
+    sorted_indices[1:k]
+end
+
+function getLessThanThresholdIndices(losses::Vector{Float64}, threshold::Float64)::Vector{Int64}
+    indices = []
+    for idx in 1:length(losses)
+        loss = losses[idx]
+        if loss < threshold
+            push!(indices, idx)
+        end
+    end
+    indices
+end
+
 # ------------------ FiniteModelClass agent ------------------------ 
 struct MountainCarFiniteModelClassAgent
     mountaincar::MountainCar
@@ -12,7 +30,7 @@ function MountainCarFiniteModelClassAgent(mountaincar::MountainCar, planners::Ve
     MountainCarFiniteModelClassAgent(mountaincar, planners, transitions, horizon)
 end
 
-function run(agent::MountainCarFiniteModelClassAgent; max_steps=1e4, debug=false)
+function run(agent::MountainCarFiniteModelClassAgent; max_steps=1e4, debug=false)::Int64
     state = init(agent.mountaincar)
     num_steps = 0
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
@@ -22,6 +40,8 @@ function run(agent::MountainCarFiniteModelClassAgent; max_steps=1e4, debug=false
         bellman_losses = evaluateBellmanLosses(agent)
         total_losses = values + bellman_losses
         best_planner_idx = argmin(total_losses)
+        # idxs = getLeastKIndices(bellman_losses, 3)
+        # best_planner_idx = argmin(values[idxs])
         if debug
             println("Num steps ", num_steps, " Values ", values, " Bellman ", bellman_losses, " best planner ", best_planner_idx)
         end
@@ -29,14 +49,14 @@ function run(agent::MountainCarFiniteModelClassAgent; max_steps=1e4, debug=false
         # Get action according to best planner
         best_action, info = act(best_planner, state)
         # update residuals
-        updateResiduals!(best_planner, info)
+        # updateResiduals!(best_planner, info)
         # step in env
         new_state, cost = step(agent.mountaincar, state, best_action, true_params)
         # Add transition to Queue
         # if length(agent.transitions) >= agent.horizon
         #     dequeue!(agent.transitions)
         # end
-        enqueue!(agent.transitions, MountainCarTransition(state, best_action, cost, new_state))
+        enqueue!(agent.transitions, MountainCarTransition(state, best_action, cost, new_state, best_planner_idx))
         state = new_state
     end
     if num_steps < max_steps
@@ -49,9 +69,14 @@ end
 
 function evaluateBellmanLosses(agent::MountainCarFiniteModelClassAgent)
     bellman_losses = Vector{Float64}()
-    for planner in agent.planners
+    for planner_idx in 1:length(agent.planners)
+        planner = agent.planners[planner_idx]
         bellman_loss = 0.0
         for transition in agent.transitions
+            idx = transition.id
+            if idx != planner_idx
+                continue
+            end
             initial_state = transition.initial_state
             final_state = transition.final_state
             action = transition.action
@@ -103,7 +128,8 @@ function run(agent::MountainCarFiniteModelClassLocalAgent; max_steps=1e4, debug=
             # Need to actually pick the best planner
             values = evaluateValues(agent.finite_model_class_agent, state)
             bellman_losses = evaluateBellmanLosses(agent.finite_model_class_agent)
-            total_losses = values + bellman_losses
+            # total_losses = values + bellman_losses
+            total_losses = bellman_losses
             best_planner_idx = argmin(total_losses)
             best_planner = agent.finite_model_class_agent.planners[best_planner_idx]
             if debug
@@ -118,7 +144,7 @@ function run(agent::MountainCarFiniteModelClassLocalAgent; max_steps=1e4, debug=
         new_state, cost = step(agent.finite_model_class_agent.mountaincar, state, best_action, true_params)
         if inDiscrepancyRegion(agent, state)
             # Add to transitions
-            enqueue!(agent.finite_model_class_agent.transitions, MountainCarTransition(state, best_action, cost, new_state))
+            enqueue!(agent.finite_model_class_agent.transitions, MountainCarTransition(state, best_action, cost, new_state, best_planner_idx))
         end
         state = new_state
     end

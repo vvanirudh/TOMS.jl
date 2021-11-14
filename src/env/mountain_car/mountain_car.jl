@@ -29,6 +29,7 @@ struct MountainCarTransition <: Transition
     action::MountainCarAction
     cost::Float64
     final_state::MountainCarDiscState
+    id::Int64
 end
 
 struct MountainCar

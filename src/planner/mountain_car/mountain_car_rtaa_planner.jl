@@ -95,6 +95,11 @@ function act(planner::MountainCarRTAAPlanner, state::MountainCarDiscState)
     return best_action, info
 end
 
+function act(planner::MountainCarRTAAPlanner, state::MountainCarDiscState, num_expansions::Int64)
+    best_action, info = astar(planner, num_expansions, state)
+    return best_action, info
+end
+
 function updateResiduals!(planner::MountainCarRTAAPlanner, info::Dict)
     best_node_f = info["best_node_f"]
     for node in info["closed"]

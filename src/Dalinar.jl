@@ -1,6 +1,7 @@
 module Dalinar
 
 using Plots
+using JLD: save, load
 
 abstract type State end
 abstract type Action end
@@ -33,10 +34,14 @@ const true_params = MountainCarParameters(-0.0025, 3)
 # const range_of_values = 0:0.005:0.045
 const range_of_values = 0.03:0.001:0.045
 
-function mountaincar_rtaa_main()
+const theta1_values = -0.0023:-0.00005:-0.0027
+const theta2_values = 2.9:0.01:3.1
+const gridsearch_data_path = "/Users/avemula1/Developer/TAML/Dalinar/data/gridsearch.jld"
+
+function mountaincar_rtaa_main(;params=true_params)::Vector{Int64}    
     rtaa_steps = []
     model = MountainCar(0.0)
-    planner = MountainCarRTAAPlanner(model, 1000, true_params)
+    planner = MountainCarRTAAPlanner(model, 1000, params)
     generateHeuristic!(planner)
     for rock_c in range_of_values
         println("Rock_c is ", rock_c)
@@ -47,6 +52,20 @@ function mountaincar_rtaa_main()
         clearResiduals!(planner)
     end
     rtaa_steps
+end
+
+function mountaincar_rtaa_grid_search()
+    data = fill(0, (length(theta1_values), length(theta2_values), length(range_of_values)))
+    for idx1 in 1:length(theta1_values)
+        theta1 = theta1_values[idx1]
+        for idx2 in 1:length(theta2_values)
+            theta2 = theta2_values[idx2]
+            params = MountainCarParameters(theta1, theta2)
+            rtaa_steps = mountaincar_rtaa_main(params=params)
+            data[idx1, idx2, :] = rtaa_steps
+        end
+    end
+    save(gridsearch_data_path, "data", data, "theta1", collect(theta1_values), "theta2", collect(theta2_values))
 end
 
 function mountaincar_cmax_main()
@@ -87,12 +106,12 @@ function mountaincar_all_main()
     finite_model_class_steps = mountaincar_finite_model_class_main()
     true_finite_model_class_steps = mountaincar_finite_model_class_main(true_model=true)
     local_finite_model_class_steps = mountaincar_finite_model_class_main(local_agent=true)
-    plot(range_of_values, rtaa_steps, lw=3, label="RTAA*", yaxis=:log, legend=:topleft)
-    plot!(range_of_values, cmax_steps, lw=3, label="CMAX", yaxis=:log)
-    plot!(range_of_values, true_steps, lw=3, label="True", yaxis=:log)
-    plot!(range_of_values, finite_model_class_steps, lw=3, label="Finite Model Class", yaxis=:log)
-    plot!(range_of_values, true_finite_model_class_steps, lw=3, label="Finite Model Class with true model", yaxis=:log)
-    plot!(range_of_values, local_finite_model_class_steps, lw=3, label="Finite Model Class with Local Data", yaxis=:log)
+    plot(range_of_values, rtaa_steps, lw=3, label="RTAA*", legend=:topleft)
+    plot!(range_of_values, cmax_steps, lw=3, label="CMAX")
+    plot!(range_of_values, true_steps, lw=3, label="True")
+    plot!(range_of_values, finite_model_class_steps, lw=3, label="Finite Model Class")
+    plot!(range_of_values, true_finite_model_class_steps, lw=3, label="Finite Model Class with true model")
+    plot!(range_of_values, local_finite_model_class_steps, lw=3, label="Finite Model Class with Local Data")
     xlabel!("Misspecification")
     ylabel!("Number of steps to reach goal")
 end
