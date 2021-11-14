@@ -1,21 +1,3 @@
-# ------------------ Utils -----------------------------------------
-
-function getLeastKIndices(losses::Vector{Float64}, k::Int64)::Vector{Int64}
-    sorted_indices = sortperm(losses)
-    sorted_indices[1:k]
-end
-
-function getLessThanThresholdIndices(losses::Vector{Float64}, threshold::Float64)::Vector{Int64}
-    indices = []
-    for idx in 1:length(losses)
-        loss = losses[idx]
-        if loss < threshold
-            push!(indices, idx)
-        end
-    end
-    indices
-end
-
 # ------------------ FiniteModelClass agent ------------------------ 
 struct MountainCarFiniteModelClassAgent
     mountaincar::MountainCar
@@ -40,10 +22,13 @@ function run(agent::MountainCarFiniteModelClassAgent; max_steps=1e4, debug=false
         bellman_losses = evaluateBellmanLosses(agent)
         total_losses = values + bellman_losses
         best_planner_idx = argmin(total_losses)
-        # idxs = getLeastKIndices(bellman_losses, 3)
-        # best_planner_idx = argmin(values[idxs])
         if debug
-            println("Num steps ", num_steps, " Values ", values, " Bellman ", bellman_losses, " best planner ", best_planner_idx)
+            println(
+                "Num steps ", num_steps,
+                " Values ", values,
+                " Bellman ", bellman_losses,
+                " best planner ", best_planner_idx
+            )
         end
         best_planner = agent.planners[best_planner_idx]
         # Get action according to best planner
