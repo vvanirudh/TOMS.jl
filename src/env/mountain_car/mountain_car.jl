@@ -1,8 +1,9 @@
 using RecipesBase
+using Distributions
 
 const car_width = 0.05
-const car_height = car_width/2.0
-const clearance = 0.2*car_height
+const car_height = car_width / 2.0
+const clearance = 0.2 * car_height
 const flag_height = 0.05
 
 struct MountainCarState <: State
@@ -10,26 +11,44 @@ struct MountainCarState <: State
     speed::Float64
 end
 
-struct MountainCarDiscState <: State 
+function vec(state::MountainCarState)::Array{Float64}
+    [state.position, state.speed]
+end
+
+struct MountainCarDiscState <: State
     disc_position::Int64
     disc_speed::Int64
+end
+
+function vec(disc_state::MountainCarDiscState)::Array{Int64}
+    [disc_state.disc_position, disc_state.disc_speed]
 end
 
 struct MountainCarAction <: Action
     id::Int64
 end
 
-struct MountainCarParameters <: Parameters 
+struct MountainCarParameters <: Parameters
     theta1::Float64
     theta2::Float64
 end
 
-struct MountainCarTransition <: Transition 
+function vec(params::MountainCarParameters)::Array{Float64}
+    [params.theta1, params.theta2]
+end
+
+struct MountainCarTransition <: Transition
     initial_state::MountainCarDiscState
     action::MountainCarAction
     cost::Float64
     final_state::MountainCarDiscState
-    id::Int64
+end
+
+struct MountainCarContTransition <: Transition
+    initial_state::MountainCarState
+    action::MountainCarAction
+    cost::Float64
+    final_state::MountainCarState
 end
 
 struct MountainCar
@@ -49,7 +68,7 @@ struct MountainCar
 end
 
 function MountainCar(rock_c::Float64)
-    start_state = MountainCarState(-π/6, 0)
+    start_state = MountainCarState(-π / 6, 0)
     position_discretization = 500
     speed_discretization = 500 # 250
     min_position = -1.2
@@ -61,15 +80,34 @@ function MountainCar(rock_c::Float64)
     rock_position = 0.25
     position_grid_cell_size = (max_position - min_position) / position_discretization
     speed_grid_cell_size = (max_speed * 2) / speed_discretization
-    MountainCar(min_position, max_position, max_speed, goal_position,
-        goal_speed, force, position_discretization,
-        speed_discretization, position_grid_cell_size,
-        speed_grid_cell_size, start_state, 
-        rock_c, rock_position)
+    MountainCar(
+        min_position,
+        max_position,
+        max_speed,
+        goal_position,
+        goal_speed,
+        force,
+        position_discretization,
+        speed_discretization,
+        position_grid_cell_size,
+        speed_grid_cell_size,
+        start_state,
+        rock_c,
+        rock_position,
+    )
 end
 
-function init(mountaincar::MountainCar)
-    cont_state_to_disc(mountaincar, mountaincar.start_state)
+function init(mountaincar::MountainCar; random = false, cont = false)
+    start_state = mountaincar.start_state
+    if random
+        random_position = rand(Uniform(mountaincar.min_position, mountaincar.max_position))
+        random_speed = rand(Uniform(-mountaincar.max_speed, mountaincar.max_speed))
+        start_state = MountainCarState(random_position, random_speed)
+    end
+    if cont
+        return start_state
+    end
+    cont_state_to_disc(mountaincar, start_state)
 end
 
 function getActions(mountaincar::MountainCar)
@@ -84,17 +122,73 @@ function checkGoal(mountaincar::MountainCar, state::MountainCarDiscState)
     checkGoal(mountaincar, disc_state_to_cont(mountaincar, state))
 end
 
-function step(mountaincar::MountainCar, disc_state::MountainCarDiscState, action::MountainCarAction, params::MountainCarParameters; debug=false)
+function step(
+    mountaincar::MountainCar,
+    disc_state::MountainCarDiscState,
+    action::MountainCarAction,
+    params::Array{Float64};
+    debug = false,
+)
+    step(
+        mountaincar,
+        disc_state,
+        action,
+        MountainCarParameters(params[1], params[2]),
+        debug = debug,
+    )
+end
+
+function step(
+    mountaincar::MountainCar,
+    disc_state::MountainCarState,
+    action::MountainCarAction,
+    params::Array{Float64};
+    debug = false,
+)
+    step(
+        mountaincar,
+        disc_state,
+        action,
+        MountainCarParameters(params[1], params[2]),
+        debug = debug,
+    )
+end
+
+function step(
+    mountaincar::MountainCar,
+    disc_state::MountainCarDiscState,
+    action::MountainCarAction,
+    params::MountainCarParameters;
+    debug = false,
+)
     state = disc_state_to_cont(mountaincar, disc_state)
+    next_slipped_state, cost = step(mountaincar, state, action, params, debug = debug)
+    next_slipped_disc_state = cont_state_to_disc(mountaincar, next_slipped_state)
+    next_slipped_disc_state, cost
+end
+
+function step(
+    mountaincar::MountainCar,
+    state::MountainCarState,
+    action::MountainCarAction,
+    params::MountainCarParameters;
+    debug = false,
+)
     cost = getCost(mountaincar, state)
     new_position = position_dynamics(mountaincar, state)
     new_speed = speed_dynamics(mountaincar, state, action, params)
     slip = 0
-    disc_rock_position = cont_state_to_disc(mountaincar, MountainCarState(mountaincar.rock_position, 0)).disc_position
-    new_disc_position = cont_state_to_disc(mountaincar, MountainCarState(new_position, 0)).disc_position
+    disc_rock_position =
+        cont_state_to_disc(
+            mountaincar,
+            MountainCarState(mountaincar.rock_position, 0),
+        ).disc_position
+    new_disc_position =
+        cont_state_to_disc(mountaincar, MountainCarState(new_position, 0)).disc_position
     if mountaincar.rock_c > 0
         # Check for rock in discrete grid to ensure that no discretization errors happen
-        if sign(disc_state.disc_position - disc_rock_position) != sign(new_disc_position - disc_rock_position)
+        if sign(disc_state.disc_position - disc_rock_position) !=
+           sign(new_disc_position - disc_rock_position)
             if debug
                 println("Hit rock")
             end
@@ -105,12 +199,10 @@ function step(mountaincar::MountainCar, disc_state::MountainCarDiscState, action
             end
         end
     end
-    
+
     slipped_speed = clamp(new_speed + slip, -mountaincar.max_speed, mountaincar.max_speed)
     @assert abs(slipped_speed) <= abs(new_speed)
-    next_slipped_state = MountainCarState(new_position, slipped_speed)
-    next_slipped_disc_state = cont_state_to_disc(mountaincar, next_slipped_state)
-    return next_slipped_disc_state, cost
+    MountainCarState(new_position, slipped_speed), cost
 end
 
 function position_dynamics(mountaincar::MountainCar, state::MountainCarState)
@@ -118,8 +210,16 @@ function position_dynamics(mountaincar::MountainCar, state::MountainCarState)
     clamp(new_position, mountaincar.min_position, mountaincar.max_position)
 end
 
-function speed_dynamics(mountaincar::MountainCar, state::MountainCarState, action::MountainCarAction, params::MountainCarParameters)
-    new_speed = state.speed + (2*action.id - 1) * mountaincar.force + cos(params.theta2 * state.position) * params.theta1
+function speed_dynamics(
+    mountaincar::MountainCar,
+    state::MountainCarState,
+    action::MountainCarAction,
+    params::MountainCarParameters,
+)
+    new_speed =
+        state.speed +
+        (2 * action.id - 1) * mountaincar.force +
+        cos(params.theta2 * state.position) * params.theta1
     # clamp(new_speed, -mountaincar.max_speed, mountaincar.max_speed)
     new_speed
 end
@@ -132,21 +232,58 @@ function getCost(mountaincar::MountainCar, state::MountainCarState)
     end
 end
 
+function getCost(mountaincar::MountainCar, disc_state::MountainCarDiscState)
+    getCost(mountaincar, disc_state_to_cont(mountaincar, disc_state))
+end
+
 function cont_state_to_disc(mountaincar::MountainCar, state::MountainCarState)
     position = state.position - mountaincar.min_position
     speed = state.speed + mountaincar.max_speed
-    disc_position = clamp(cont_to_disc(position, mountaincar.position_grid_cell_size), 0, mountaincar.position_discretization-1)
-    disc_speed = clamp(cont_to_disc(speed, mountaincar.speed_grid_cell_size), 0, mountaincar.speed_discretization-1)
+    disc_position = clamp(
+        cont_to_disc(position, mountaincar.position_grid_cell_size),
+        0,
+        mountaincar.position_discretization - 1,
+    )
+    disc_speed = clamp(
+        cont_to_disc(speed, mountaincar.speed_grid_cell_size),
+        0,
+        mountaincar.speed_discretization - 1,
+    )
     MountainCarDiscState(disc_position, disc_speed)
 end
 
 function absorbing_state(mountaincar::MountainCar)
-    MountainCarDiscState(mountaincar.position_discretization-1, mountaincar.speed_discretization-1)
+    MountainCarDiscState(
+        mountaincar.position_discretization - 1,
+        mountaincar.speed_discretization - 1,
+    )
+end
+
+function absorbing_state_idx(mountaincar::MountainCar)
+    mountaincar.position_discretization * mountaincar.speed_discretization
+end
+
+function disc_state_to_idx(mountaincar::MountainCar, disc_state::MountainCarDiscState)
+    disc_position = disc_state.disc_position
+    disc_speed = disc_state.disc_speed
+    # Adding 1 for julia indexing
+    idx = disc_position * mountaincar.speed_discretization + disc_speed + 1
+    @assert idx >= 1 &&
+            idx <= mountaincar.position_discretization * mountaincar.speed_discretization
+    idx
+end
+
+function idx_to_disc_state(mountaincar::MountainCar, idx::Int64)
+    disc_position = (idx - 1) ÷ mountaincar.speed_discretization
+    disc_speed = (idx - 1) % mountaincar.speed_discretization
+    @assert disc_position >= 0 && disc_position < mountaincar.position_discretization
+    @assert disc_speed >= 0 && disc_speed < mountaincar.speed_discretization
+    MountainCarDiscState(disc_position, disc_speed)
 end
 
 function cont_to_disc(x::Float64, cell_size::Float64)
     disc_x = floor(Int64, (x + 0.5 * cell_size) / cell_size)
-    if x >=0
+    if x >= 0
         return disc_x
     else
         return disc_x - 1
@@ -158,8 +295,13 @@ function disc_state_to_cont(mountaincar::MountainCar, state::MountainCarDiscStat
     disc_speed = state.disc_speed
     position = disc_to_cont(disc_position, mountaincar.position_grid_cell_size)
     speed = disc_to_cont(disc_speed, mountaincar.speed_grid_cell_size)
-    position = clamp(position + mountaincar.min_position, mountaincar.min_position, mountaincar.max_position)
-    speed = clamp(speed - mountaincar.max_speed, -mountaincar.max_speed, mountaincar.max_speed)
+    position = clamp(
+        position + mountaincar.min_position,
+        mountaincar.min_position,
+        mountaincar.max_position,
+    )
+    speed =
+        clamp(speed - mountaincar.max_speed, -mountaincar.max_speed, mountaincar.max_speed)
     MountainCarState(position, speed)
 end
 
@@ -170,14 +312,14 @@ end
 @recipe function f(mountaincar::MountainCar, disc_state::MountainCarDiscState)
     state = disc_state_to_cont(mountaincar, disc_state)
     legend := false
-    xlims  := (mountaincar.min_position, mountaincar.max_position)
+    xlims := (mountaincar.min_position, mountaincar.max_position)
     ylims := (0, 1.1)
     grid := false
     ticks := nothing
 
     # Mountain
     @series begin
-        xs = range(mountaincar.min_position, stop=mountaincar.max_position, length=100)
+        xs = range(mountaincar.min_position, stop = mountaincar.max_position, length = 100)
         ys = height_car.(xs)
         seriestype := :path
         linecolor --> :blue
@@ -190,7 +332,7 @@ end
         seriestype := :shape
 
         θ = cos(3 * state.position)
-        xs = [-car_width/2, -car_width/2, car_width/2, car_width/2]
+        xs = [-car_width / 2, -car_width / 2, car_width / 2, car_width / 2]
         ys = [0, car_height, car_height, 0]
         xs, ys = rotate_car(xs, ys, θ)
         translate_car(xs, ys, [state.position, height_car(state.position)])
@@ -198,16 +340,20 @@ end
 
     # Flag
     @series begin
-        linecolor --> :red 
-        seriestype := :path 
+        linecolor --> :red
+        seriestype := :path
 
-        [mountaincar.goal_position, mountaincar.goal_position], [height_car(mountaincar.goal_position), height_car(mountaincar.goal_position) + flag_height]
+        [mountaincar.goal_position, mountaincar.goal_position],
+        [
+            height_car(mountaincar.goal_position),
+            height_car(mountaincar.goal_position) + flag_height,
+        ]
     end
 end
 
 height_car(x::Float64) = sin(3 * x) * 0.45 + 0.55
-rotate_car(xs::Vector{Float64}, ys::Vector{Float64}, θ::Float64) = 
-    xs.*cos(θ) .- ys.*sin(θ), ys.*cos(θ) + xs.*sin(θ)
+rotate_car(xs::Vector{Float64}, ys::Vector{Float64}, θ::Float64) =
+    xs .* cos(θ) .- ys .* sin(θ), ys .* cos(θ) + xs .* sin(θ)
 
-translate_car(xs::Vector{Float64}, ys::Vector{Float64}, t::Vector{Float64}) = 
+translate_car(xs::Vector{Float64}, ys::Vector{Float64}, t::Vector{Float64}) =
     xs .+ t[1] + ys .+ t[2]
