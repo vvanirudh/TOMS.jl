@@ -1,24 +1,28 @@
 mutable struct MountainCarCMAXPlanner <: Planner
     planner::MountainCarRTAAPlanner
-    discrepancy_sets::Dict{MountainCarAction, Set{MountainCarDiscState}}
+    discrepancy_sets::Dict{MountainCarAction,Set{MountainCarDiscState}}
 end
 
-function MountainCarCMAXPlanner(mountaincar::MountainCar, num_expansions::Int64, params::MountainCarParameters)
+function MountainCarCMAXPlanner(
+    mountaincar::MountainCar,
+    num_expansions::Int64,
+    params::MountainCarParameters,
+)
     planner = MountainCarRTAAPlanner(mountaincar, num_expansions, params)
-    discrepancy_sets = Dict{MountainCarAction, Set{MountainCarDiscState}}()
+    discrepancy_sets = Dict{MountainCarAction,Set{MountainCarDiscState}}()
     for action in planner.actions
         discrepancy_sets[action] = Set{MountainCarDiscState}()
     end
     MountainCarCMAXPlanner(planner, discrepancy_sets)
 end
 
-function generateHeuristic!(cmax_planner::MountainCarCMAXPlanner; max_steps=1e4)
-    generateHeuristic!(cmax_planner.planner, max_steps=max_steps)
+function generateHeuristic!(cmax_planner::MountainCarCMAXPlanner; max_steps = 1e4)
+    generateHeuristic!(cmax_planner.planner, max_steps = max_steps)
 end
 
-function generateHeuristic!(planners::Vector{MountainCarCMAXPlanner}; max_steps=1e4)
+function generateHeuristic!(planners::Vector{MountainCarCMAXPlanner}; max_steps = 1e4)
     for planner in planners
-        generateHeuristic!(planner, max_steps=max_steps)
+        generateHeuristic!(planner, max_steps = max_steps)
     end
 end
 
@@ -36,7 +40,11 @@ function getHeuristic(cmax_planner::MountainCarCMAXPlanner, state::MountainCarDi
     getHeuristic(cmax_planner.planner, state)
 end
 
-function getSuccessors(cmax_planner::MountainCarCMAXPlanner, state::MountainCarDiscState, action::MountainCarAction)
+function getSuccessors(
+    cmax_planner::MountainCarCMAXPlanner,
+    state::MountainCarDiscState,
+    action::MountainCarAction,
+)
     next_disc_state, cost = getSuccessors(cmax_planner.planner, state, action)
     if state ∈ cmax_planner.discrepancy_sets[action]
         cost = inflated_cost
@@ -61,6 +69,10 @@ function updateResiduals!(cmax_planner::MountainCarCMAXPlanner, info::Dict)
     updateResiduals!(cmax_planner.planner, info)
 end
 
-function addDiscrepancy!(cmax_planner::MountainCarCMAXPlanner, state::MountainCarDiscState, action::MountainCarAction)
+function addDiscrepancy!(
+    cmax_planner::MountainCarCMAXPlanner,
+    state::MountainCarDiscState,
+    action::MountainCarAction,
+)
     push!(cmax_planner.discrepancy_sets[action], state)
 end

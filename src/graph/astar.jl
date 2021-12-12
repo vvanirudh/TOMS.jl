@@ -6,8 +6,8 @@ struct Node
     state::State
     g::Float64
     h::Float64
-    came_from::Union{Node, Nothing}
-    action::Union{Action, Nothing}
+    came_from::Union{Node,Nothing}
+    action::Union{Action,Nothing}
 end
 
 function ==(node1::Node, node2::Node)
@@ -20,9 +20,9 @@ end
 
 function astar(planner::Planner, num_expansions::Int64, start_state::State)
     closed_set = Set{Node}()
-    open_list = MutableBinaryMinHeap{Tuple{Float64, Float64, Int64}}()
-    open_dict = Dict{Node, Int64}()
-    open_dict_reverse = Dict{Int64, Node}()
+    open_list = MutableBinaryMinHeap{Tuple{Float64,Float64,Int64}}()
+    open_dict = Dict{Node,Int64}()
+    open_dict_reverse = Dict{Int64,Node}()
 
     reached_goal = false
     count = 0
@@ -37,7 +37,7 @@ function astar(planner::Planner, num_expansions::Int64, start_state::State)
     open_dict[updated_start_node] = handle
     open_dict_reverse[handle] = updated_start_node
 
-    for exp=1:num_expansions
+    for exp = 1:num_expansions
         triplet, handle = top_with_handle(open_list)
         f, h, _ = triplet
         node = open_dict_reverse[handle]
@@ -74,7 +74,8 @@ function astar(planner::Planner, num_expansions::Int64, start_state::State)
                 if tentative_g < old_neighbor_node.g
                     h = old_neighbor_node.h
                     f = tentative_g + h
-                    updated_neighbor_node = Node(old_neighbor_node.state, tentative_g, h, node, action)
+                    updated_neighbor_node =
+                        Node(old_neighbor_node.state, tentative_g, h, node, action)
                     delete!(open_dict, neighbor_node)
                     update!(open_list, handle, (f, h, count))
                     count += 1

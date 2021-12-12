@@ -1,12 +1,12 @@
 struct GridworldAgent
-    gridworld::Gridworld 
+    gridworld::Gridworld
     planner::GridworldPlanner
 end
 
-function run(agent::GridworldAgent; max_steps=1e6)
+function run(agent::GridworldAgent; max_steps = 1e6)
     state = init(agent.gridworld)
     num_steps = 0
-    while !checkGoal(agent.gridworld, state) && num_steps<max_steps
+    while !checkGoal(agent.gridworld, state) && num_steps < max_steps
         num_steps += 1
         render(agent.gridworld, state)
         best_action, info = act(agent.planner, state)

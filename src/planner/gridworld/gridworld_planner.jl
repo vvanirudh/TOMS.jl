@@ -5,7 +5,7 @@ mutable struct GridworldPlanner <: Planner
     residuals::Matrix{Float64}
 end
 
-function GridworldPlanner(gridworld::Gridworld, num_expansions::Int64=10)
+function GridworldPlanner(gridworld::Gridworld, num_expansions::Int64 = 10)
     residuals = fill(0.0, (gridworld.size, gridworld.size))
     GridworldPlanner(gridworld, num_expansions, getActions(gridworld), residuals)
 end
@@ -16,10 +16,15 @@ function getHeuristic(planner::GridworldPlanner, state::GridworldState)
 end
 
 function manhattanHeuristic(planner::GridworldPlanner, state::GridworldState)
-    abs(planner.gridworld.goal_state.x - state.x) + abs(planner.gridworld.goal_state.y - state.y)
+    abs(planner.gridworld.goal_state.x - state.x) +
+    abs(planner.gridworld.goal_state.y - state.y)
 end
 
-function getSuccessors(planner::GridworldPlanner, state::GridworldState, action::GridworldAction)
+function getSuccessors(
+    planner::GridworldPlanner,
+    state::GridworldState,
+    action::GridworldAction,
+)
     next_state, cost = step(planner.gridworld, state, action)
     return next_state, cost
 end
@@ -42,6 +47,7 @@ function updateResiduals!(planner::GridworldPlanner, info::Dict)
     for node in info["closed"]
         state = node.state
         g = node.g
-        planner.residuals[state.x, state.y] = best_node_f - g - manhattanHeuristic(planner, state)
+        planner.residuals[state.x, state.y] =
+            best_node_f - g - manhattanHeuristic(planner, state)
     end
 end

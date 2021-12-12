@@ -7,7 +7,7 @@ function mountaincar_cmax_main()
         println("Rock_c is ", rock_c)
         mountaincar = MountainCar(rock_c)
         cmax_agent = MountainCarCMAXAgent(mountaincar, cmax_planner)
-        n_steps = run(cmax_agent, max_steps=1e4)
+        n_steps = run(cmax_agent, max_steps = 1e4)
         push!(cmax_steps, n_steps)
         clearResiduals!(cmax_planner)
     end

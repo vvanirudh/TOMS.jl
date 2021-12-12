@@ -2,6 +2,10 @@ module Dalinar
 
 using Plots
 using JLD: save, load
+using Debugger
+using Random
+
+Random.seed!(0)
 
 abstract type State end
 abstract type Action end

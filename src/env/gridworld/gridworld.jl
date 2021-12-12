@@ -15,7 +15,12 @@ struct Gridworld
     goal_state::GridworldState
 end
 
-function Gridworld(grid::Matrix{Int64}, render::Bool, start_state::GridworldState, goal_state::GridworldState)
+function Gridworld(
+    grid::Matrix{Int64},
+    render::Bool,
+    start_state::GridworldState,
+    goal_state::GridworldState,
+)
     gridsize = size(grid, 1)
     Gridworld(gridsize, grid, render, start_state, goal_state)
 end
@@ -24,7 +29,11 @@ function init(gridworld::Gridworld)
     return gridworld.start_state
 end
 
-function getDisplacement(gridworld::Gridworld, state::GridworldState, action::GridworldAction)
+function getDisplacement(
+    gridworld::Gridworld,
+    state::GridworldState,
+    action::GridworldAction,
+)
     x, y = state.x, state.y
     if gridworld.grid[x, y] == 0
         # Free state
@@ -94,11 +103,11 @@ end
 function render(gridworld::Gridworld, state::GridworldState)
     if gridworld.render
         current_grid = fill("x", (gridworld.size, gridworld.size))
-        for i=1:gridworld.size
-            for j=1:gridworld.size
+        for i = 1:gridworld.size
+            for j = 1:gridworld.size
                 if i == state.x && j == state.y
                     current_grid[i, j] = "A"
-                elseif i== gridworld.goal_state.x && j == gridworld.goal_state.y
+                elseif i == gridworld.goal_state.x && j == gridworld.goal_state.y
                     current_grid[i, j] = "G"
                 else
                     current_grid[i, j] = string(gridworld.grid[i, j])
@@ -113,8 +122,8 @@ end
 function create_example_gridworld()
     size = 1000
     grid = fill(0, (size, size))
-    grid[Int(floor(size/4)):size, Int(floor(size/2))] .= 1
-    grid[Int(floor(size/2)), Int(floor(size/2))+2:end] .= 1
+    grid[Int(floor(size / 4)):size, Int(floor(size / 2))] .= 1
+    grid[Int(floor(size / 2)), Int(floor(size / 2))+2:end] .= 1
 
     start_state = GridworldState(1, 1)
     goal_state = GridworldState(size, size)
