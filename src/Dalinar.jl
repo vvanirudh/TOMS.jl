@@ -1,9 +1,17 @@
 module Dalinar
 
+using Pkg
+Pkg.activate(".")
+
 using Plots
 using JLD: save, load
 using Debugger
 using Random
+using LinearAlgebra
+using PyCall
+using Distances
+using NearestNeighbors
+using IterTools
 
 Random.seed!(0)
 
@@ -12,6 +20,7 @@ abstract type Action end
 abstract type Planner end
 abstract type Parameters end
 abstract type Transition end
+
 
 include("graph/astar.jl")
 # --------- gridworld ------------------
@@ -24,4 +33,5 @@ include("env/mountain_car/mountain_car.jl")
 include("planner/mountain_car/mountain_car_planners.jl")
 include("agent/mountain_car/mountain_car_agents.jl")
 include("experiment/mountain_car/run_all.jl")
+
 end

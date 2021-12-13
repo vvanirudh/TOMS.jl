@@ -2,7 +2,7 @@ using JLD: save, load
 
 const data_path = "/Users/avemula1/Developer/TAML/Dalinar/data/"
 const inflated_cost = 1e6
-const number_of_runs_to_generate_heuristic = 500
+const number_of_runs_to_generate_heuristic = 1000
 
 mutable struct MountainCarRTAAPlanner <: Planner
     mountaincar::MountainCar
@@ -40,7 +40,7 @@ function generateHeuristic!(planner::MountainCarRTAAPlanner; max_steps = 1e4)
         println("Generating Heuristic")
         clearHeuristic!(planner)
         for i = 1:number_of_runs_to_generate_heuristic
-            state = init(planner.mountaincar; random=true)
+            state = init(planner.mountaincar; random = true)
             num_steps = 0
             while !checkGoal(planner.mountaincar, state) && num_steps < max_steps
                 num_steps += 1

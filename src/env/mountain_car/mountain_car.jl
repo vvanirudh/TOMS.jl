@@ -69,17 +69,17 @@ end
 
 function MountainCar(rock_c::Float64)
     start_state = MountainCarState(-π / 6, 0)
-    position_discretization = 500
-    speed_discretization = 500 # 250
+    position_discretization = 500 # 150 # 300 # 500
+    speed_discretization = 250 # 150 # 500 # 250 # new param
     min_position = -1.2
-    max_position = 0.6
-    max_speed = 0.2 # 0.07
+    max_position = 0.5 # 0.6
+    max_speed = 0.07  # 0.2
     goal_position = 0.5
     goal_speed = 0
     force = 0.001
     rock_position = 0.25
-    position_grid_cell_size = (max_position - min_position) / position_discretization
-    speed_grid_cell_size = (max_speed * 2) / speed_discretization
+    position_grid_cell_size = (max_position - min_position) / (position_discretization - 1)
+    speed_grid_cell_size = (max_speed * 2) / (speed_discretization - 1)
     MountainCar(
         min_position,
         max_position,
@@ -115,7 +115,7 @@ function getActions(mountaincar::MountainCar)
 end
 
 function checkGoal(mountaincar::MountainCar, state::MountainCarState)
-    state.position >= mountaincar.goal_position && state.speed >= mountaincar.goal_speed
+    state.position >= mountaincar.goal_position
 end
 
 function checkGoal(mountaincar::MountainCar, state::MountainCarDiscState)
@@ -140,14 +140,14 @@ end
 
 function step(
     mountaincar::MountainCar,
-    disc_state::MountainCarState,
+    state::MountainCarState,
     action::MountainCarAction,
     params::Array{Float64};
     debug = false,
 )
     step(
         mountaincar,
-        disc_state,
+        state,
         action,
         MountainCarParameters(params[1], params[2]),
         debug = debug,
@@ -178,6 +178,8 @@ function step(
     new_position = position_dynamics(mountaincar, state)
     new_speed = speed_dynamics(mountaincar, state, action, params)
     slip = 0
+
+    disc_state = cont_state_to_disc(mountaincar, state)
     disc_rock_position =
         cont_state_to_disc(
             mountaincar,
@@ -253,14 +255,11 @@ function cont_state_to_disc(mountaincar::MountainCar, state::MountainCarState)
 end
 
 function absorbing_state(mountaincar::MountainCar)
-    MountainCarDiscState(
-        mountaincar.position_discretization - 1,
-        mountaincar.speed_discretization - 1,
-    )
+    MountainCarDiscState(Inf, Inf)
 end
 
 function absorbing_state_idx(mountaincar::MountainCar)
-    mountaincar.position_discretization * mountaincar.speed_discretization
+    mountaincar.position_discretization * mountaincar.speed_discretization + 1
 end
 
 function disc_state_to_idx(mountaincar::MountainCar, disc_state::MountainCarDiscState)
@@ -273,6 +272,11 @@ function disc_state_to_idx(mountaincar::MountainCar, disc_state::MountainCarDisc
     idx
 end
 
+function cont_state_to_idx(mountaincar::MountainCar, cont_state::MountainCarState)
+    disc_state = cont_state_to_disc(mountaincar, cont_state)
+    disc_state_to_idx(mountaincar, disc_state)
+end
+
 function idx_to_disc_state(mountaincar::MountainCar, idx::Int64)
     disc_position = (idx - 1) ÷ mountaincar.speed_discretization
     disc_speed = (idx - 1) % mountaincar.speed_discretization
@@ -280,6 +284,12 @@ function idx_to_disc_state(mountaincar::MountainCar, idx::Int64)
     @assert disc_speed >= 0 && disc_speed < mountaincar.speed_discretization
     MountainCarDiscState(disc_position, disc_speed)
 end
+
+function idx_to_cont_state(mountaincar::MountainCar, idx::Int64)
+    disc_state = idx_to_disc_state(mountaincar, idx)
+    disc_state_to_cont(mountaincar, disc_state)
+end
+
 
 function cont_to_disc(x::Float64, cell_size::Float64)
     disc_x = floor(Int64, (x + 0.5 * cell_size) / cell_size)
