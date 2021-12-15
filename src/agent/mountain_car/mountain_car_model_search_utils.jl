@@ -291,12 +291,11 @@ function distance_fn(
     speed_range::Float64,
 )::Array{Float64}
     # TODO: Can be parallelized
-    [distance_fn(x, x_other, position_range, speed_range) for x_other in xs]
-    # ThreadsX.map(x_other -> distance_fn(x, x_other, position_range, speed_range), xs)
+    [distance_fn_local(x, x_other, position_range, speed_range) for x_other in xs]
 end
 
 
-function distance_fn(
+function distance_fn_local(
     x::Array{Float64},
     x_other::Array{Float64},
     position_range::Float64,

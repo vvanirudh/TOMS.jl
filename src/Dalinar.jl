@@ -15,7 +15,6 @@ using Distances
 using NearestNeighbors
 using IterTools
 using Distributions
-using ThreadsX
 
 Random.seed!(0)
 
