@@ -149,7 +149,8 @@ function hill_climb(
         new_inputs = product(new_inputs[1], new_inputs[2])
         new_inputs = [[x for x in input] for input in new_inputs]
         # TODO: Can be parallelized
-        new_outputs = [eval_fn(input) for input in new_inputs]
+        # new_outputs = [eval_fn(input) for input in new_inputs]
+        new_outputs = ThreadsX.map(eval_fn, new_inputs)
         for input in new_inputs
             push!(inputs, input)
         end
@@ -290,8 +291,8 @@ function distance_fn(
     speed_range::Float64,
 )::Array{Float64}
     # TODO: Can be parallelized
-    # [distance_fn(x, x_other, position_range, speed_range) for x_other in xs]
-    ThreadsX.map(x_other -> distance_fn(x, x_other, position_range, speed_range), xs)
+    [distance_fn(x, x_other, position_range, speed_range) for x_other in xs]
+    # ThreadsX.map(x_other -> distance_fn(x, x_other, position_range, speed_range), xs)
 end
 
 
