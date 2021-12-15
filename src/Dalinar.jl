@@ -8,6 +8,7 @@ using Plots
 using JLD: save, load
 using Debugger
 using Random
+using DataStructures
 using LinearAlgebra
 using PyCall
 using Distances

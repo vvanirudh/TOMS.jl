@@ -1,6 +1,5 @@
 import Base: ==
 import Base: hash
-using DataStructures
 
 struct Node
     state::State

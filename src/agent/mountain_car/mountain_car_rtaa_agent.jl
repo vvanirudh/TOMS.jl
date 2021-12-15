@@ -1,5 +1,3 @@
-using DataStructures
-
 # ------------------ RTAA* agent ------------------------ 
 struct MountainCarRTAAAgent
     mountaincar::MountainCar
