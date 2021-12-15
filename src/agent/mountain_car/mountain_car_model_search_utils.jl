@@ -6,7 +6,7 @@ function generate_batch_data(
     num_episodes::Int64,
     horizon::Int64;
     policy = nothing,
-)
+)::Array{MountainCarContTransition}
     data = []
     # TODO: Can be parallelized
     for episode = 1:num_episodes
