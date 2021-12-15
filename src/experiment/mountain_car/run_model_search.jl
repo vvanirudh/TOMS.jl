@@ -44,8 +44,16 @@ end
 
 function mfmc_evaluation_profile()
     mountaincar = MountainCar(0.0)
-    data = generate_batch_data(mountaincar, true_params, 1000, 500)
+    data = generate_batch_data(mountaincar, true_params, 10, 10)
     x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
     policy = random_policy(mountaincar)
     mfmc_evaluation(mountaincar, policy, 500, x_array, xnext_array, cost_array, 1)
+end
+
+function hill_climb_profile()
+    mountaincar = MountainCar(0.0)
+    data = generate_batch_data(mountaincar, true_params, 10, 10)
+    optimization_params =
+        MountainCarOptimizationParameters([0.0024, 1], [-0.0025, 3], 20, false)
+    return_based_model_search(mountaincar, data, optimization_params, 10)
 end

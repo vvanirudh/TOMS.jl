@@ -149,7 +149,8 @@ function hill_climb(
         new_inputs = product(new_inputs[1], new_inputs[2])
         new_inputs = [[x for x in input] for input in new_inputs]
         # TODO: Can be parallelized
-        new_outputs = [eval_fn(input) for input in new_inputs]
+        # new_outputs = [eval_fn(input) for input in new_inputs]
+        new_outputs = pmap(eval_fn, new_inputs)
         # new_outputs = ThreadsX.map(eval_fn, new_inputs)
         for input in new_inputs
             push!(inputs, input)
@@ -291,7 +292,8 @@ function distance_fn(
     speed_range::Float64,
 )::Array{Float64}
     # TODO: Can be parallelized
-    [distance_fn_local(x, x_other, position_range, speed_range) for x_other in xs]
+    #[distance_fn_local(x, x_other, position_range, speed_range) for x_other in xs]
+    map(x_other->distance_fn_local(x, x_other, position_range, speed_range), xs)
 end
 
 
@@ -301,6 +303,7 @@ function distance_fn_local(
     position_range::Float64,
     speed_range::Float64,
 )::Float64
+    # println("Checking distance from ", x, " to ", x_other)
     position_distance = (x[1] - x_other[1]) / position_range
     speed_distance = (x[2] - x_other[2]) / speed_range
     position_distance^2 + speed_distance^2

@@ -1,4 +1,4 @@
-module Dalinar
+@everywhere module Dalinar
 
 using Pkg
 Pkg.activate(".")
@@ -15,6 +15,7 @@ using Distances
 using NearestNeighbors
 using IterTools
 using Distributions
+using Distributed
 
 Random.seed!(0)
 
