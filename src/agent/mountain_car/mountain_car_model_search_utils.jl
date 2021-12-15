@@ -113,12 +113,12 @@ function hill_climb(
     step = copy(optimization_params.initial_step_size)
     inputs = []
     outputs = []
-    #println("Evaluating initial params ", optimization_params.initial_params)
+    println("Evaluating initial params ", optimization_params.initial_params)
     push!(inputs, copy(optimization_params.initial_params))
     push!(outputs, eval_fn(inputs[1]))
     best_params = copy(optimization_params.initial_params)
     if !isnothing(least_squares_params)
-        #println("Evaluating least squares params ", least_squares_params)
+        println("Evaluating least squares params ", least_squares_params)
         push!(inputs, least_squares_params)
         push!(outputs, eval_fn(inputs[2]))
         if outputs[2] < outputs[1]
@@ -149,18 +149,17 @@ function hill_climb(
         new_inputs = product(new_inputs[1], new_inputs[2])
         new_inputs = [[x for x in input] for input in new_inputs]
         # TODO: Can be parallelized
+        new_outputs = [eval_fn(input) for input in new_inputs]
         for input in new_inputs
-            # println("Evaluating params ", input)
             push!(inputs, input)
-            push!(outputs, eval_fn(input))
         end
-        # new_outputs = pmap(eval_fn, new_inputs)
-        # inputs = vcat(inputs, new_inputs)
-        # outputs = vcat(outputs, new_outputs)
+        for output in new_outputs
+            push!(outputs, output)
+        end
 
         new_best_params = inputs[argmin(outputs)]
         if new_best_params == best_params
-            # println("Decreasing step size")
+            println("Decreasing step size")
             step = step ./ 2
         else
             println("Moving to params ", new_best_params)
@@ -174,11 +173,11 @@ function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTr
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization
     n_actions = 2
     actions = getActions(mountaincar)
-    x_array::Array{Array{MountainCarState}} = []
+    x_array::Array{Array{Array{Float64}}} = []
     xnext_array::Array{Array{MountainCarState}} = []
     cost_array::Array{Array{Float64}} = []
     for a = 1:n_actions
-        push!(x_array, MountainCarState[])
+        push!(x_array, [])
         push!(xnext_array, MountainCarState[])
         push!(cost_array, Float64[])
     end
@@ -186,24 +185,25 @@ function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTr
     for i = 1:length(data)
         transition = data[i]
         a = transition.action.id + 1
-        push!(x_array[a], transition.initial_state)
+        push!(x_array[a], vec(transition.initial_state))
         push!(xnext_array[a], transition.final_state)
         push!(cost_array[a], transition.cost)
     end
     x_array, xnext_array, cost_array
 end
 
-
 function mfmc_evaluation(
     mountaincar::MountainCar,
     policy::Array{Int64},
     horizon::Int64,
-    x_array::Array{Array{MountainCarState}},
+    x_array::Array{Array{Array{Float64}}},
     xnext_array::Array{Array{MountainCarState}},
     cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64,
 )
     x_array_copy = deepcopy(x_array)
+    position_range = mountaincar.max_position - mountaincar.min_position
+    speed_range = 2 * mountaincar.max_speed
     total_return = 0.0
     for i = 1:num_episodes_eval
         x = init(mountaincar, cont = true)
@@ -211,8 +211,9 @@ function mfmc_evaluation(
         for t = 1:horizon
             a = policy[cont_state_to_idx(mountaincar, x)]
             total_return += c
-            manual_data_index = argmin(distance_fn(mountaincar, x, x_array_copy[a]))
-            x_array_copy[a][manual_data_index] = MountainCarState(Inf, Inf)
+            manual_data_index =
+                argmin(distance_fn(vec(x), x_array_copy[a], position_range, speed_range))
+            x_array_copy[a][manual_data_index] = [Inf, Inf]
             x = xnext_array[a][manual_data_index]
             c = cost_array[a][manual_data_index]
             if checkGoal(mountaincar, x)
@@ -221,9 +222,10 @@ function mfmc_evaluation(
         end
     end
     avg_return = total_return / num_episodes_eval
-    # println("MFMC return computed as ", avg_return)
+    println("MFMC return computed as ", avg_return)
     return avg_return
 end
+
 
 function bellman_evaluation(
     mountaincar::MountainCar,
@@ -231,7 +233,7 @@ function bellman_evaluation(
     policy::Array{Int64},
     values::Array{Float64},
     horizon::Int64,
-    x_array::Array{Array{MountainCarState}},
+    x_array::Array{Array{Array{Float64}}},
     xnext_array::Array{Array{MountainCarState}},
     cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64;
@@ -253,13 +255,16 @@ function bellman_evaluation(
     # Evaluate bellman error
     bellman_error = 0.0
     x_array_copy = deepcopy(x_array)
+    position_range = mountaincar.max_position - mountaincar.min_position
+    speed_range = 2 * mountaincar.max_speed
     for i = 1:num_episodes_eval
         x = init(mountaincar, cont = true)
         for t = 1:horizon
             a = policy[cont_state_to_idx(mountaincar, x)]
             action = actions[a]
-            manual_data_index = argmin(distance_fn(mountaincar, x, x_array_copy[a]))
-            x_array_copy[a][manual_data_index] = MountainCarState(Inf, Inf)
+            manual_data_index =
+                argmin(distance_fn(vec(x), x_array_copy[a], position_range, speed_range))
+            x_array_copy[a][manual_data_index] = [Inf, Inf]
             xnext = xnext_array[a][manual_data_index]
             xprednext, _ = step(mountaincar, x, action, params)
             # TODO: Any effect of gamma here? Since values are computing using gamma
@@ -274,30 +279,33 @@ function bellman_evaluation(
         end
     end
     bellman_error = bellman_error / num_episodes_eval
-    # println("Bellman evaluation computed as ", model_return + bellman_error)
+    println("Bellman evaluation computed as ", model_return + bellman_error)
     model_return + bellman_error
 end
 
 function distance_fn(
-    mountaincar::MountainCar,
-    x::MountainCarState,
-    xs::Array{MountainCarState},
-)
+    x::Array{Float64},
+    xs::Array{Array{Float64}},
+    position_range::Float64,
+    speed_range::Float64,
+)::Array{Float64}
     # TODO: Can be parallelized
-    [distance_fn(mountaincar, x, x_other) for x_other in xs]
+    # [distance_fn(x, x_other, position_range, speed_range) for x_other in xs]
+    ThreadsX.map(x_other -> distance_fn(x, x_other, position_range, speed_range), xs)
 end
 
+
 function distance_fn(
-    mountaincar::MountainCar,
-    x::MountainCarState,
-    x_other::MountainCarState,
-)
-    position_distance =
-        (x.position - x_other.position) /
-        (mountaincar.max_position - mountaincar.min_position)
-    speed_distance = (x.speed - x_other.speed) / (2 * mountaincar.max_speed)
+    x::Array{Float64},
+    x_other::Array{Float64},
+    position_range::Float64,
+    speed_range::Float64,
+)::Float64
+    position_distance = (x[1] - x_other[1]) / position_range
+    speed_distance = (x[2] - x_other[2]) / speed_range
     position_distance^2 + speed_distance^2
 end
+
 
 function get_nearest_data_index(
     x::MountainCarState,

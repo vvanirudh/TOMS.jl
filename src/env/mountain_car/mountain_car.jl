@@ -1,6 +1,3 @@
-using RecipesBase
-using Distributions
-
 const car_width = 0.05
 const car_height = car_width / 2.0
 const clearance = 0.2 * car_height
@@ -318,52 +315,3 @@ end
 function disc_to_cont(x::Int64, cell_size::Float64)
     x * cell_size
 end
-
-@recipe function f(mountaincar::MountainCar, disc_state::MountainCarDiscState)
-    state = disc_state_to_cont(mountaincar, disc_state)
-    legend := false
-    xlims := (mountaincar.min_position, mountaincar.max_position)
-    ylims := (0, 1.1)
-    grid := false
-    ticks := nothing
-
-    # Mountain
-    @series begin
-        xs = range(mountaincar.min_position, stop = mountaincar.max_position, length = 100)
-        ys = height_car.(xs)
-        seriestype := :path
-        linecolor --> :blue
-        xs, ys
-    end
-
-    # Car 
-    @series begin
-        fillcolor --> :black
-        seriestype := :shape
-
-        θ = cos(3 * state.position)
-        xs = [-car_width / 2, -car_width / 2, car_width / 2, car_width / 2]
-        ys = [0, car_height, car_height, 0]
-        xs, ys = rotate_car(xs, ys, θ)
-        translate_car(xs, ys, [state.position, height_car(state.position)])
-    end
-
-    # Flag
-    @series begin
-        linecolor --> :red
-        seriestype := :path
-
-        [mountaincar.goal_position, mountaincar.goal_position],
-        [
-            height_car(mountaincar.goal_position),
-            height_car(mountaincar.goal_position) + flag_height,
-        ]
-    end
-end
-
-height_car(x::Float64) = sin(3 * x) * 0.45 + 0.55
-rotate_car(xs::Vector{Float64}, ys::Vector{Float64}, θ::Float64) =
-    xs .* cos(θ) .- ys .* sin(θ), ys .* cos(θ) + xs .* sin(θ)
-
-translate_car(xs::Vector{Float64}, ys::Vector{Float64}, t::Vector{Float64}) =
-    xs .+ t[1] + ys .+ t[2]

@@ -1,7 +1,7 @@
 module Dalinar
 
 using Pkg
-Pkg.activate(".")
+Pkg.activate("../")
 
 using Plots
 using JLD: save, load
@@ -12,6 +12,8 @@ using PyCall
 using Distances
 using NearestNeighbors
 using IterTools
+using Distributions
+using ThreadsX
 
 Random.seed!(0)
 
