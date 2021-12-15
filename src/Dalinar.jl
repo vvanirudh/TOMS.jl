@@ -1,7 +1,8 @@
 module Dalinar
 
 using Pkg
-Pkg.activate("../")
+Pkg.activate(".")
+Pkg.instantiate()
 
 using Plots
 using JLD: save, load
