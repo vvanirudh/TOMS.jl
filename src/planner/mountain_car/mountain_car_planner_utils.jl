@@ -100,9 +100,14 @@ function convert_planner_to_policy_and_values(
     V = zeros(n_states)
 
     for s = 1:n_states
-        action, info = act(planner, idx_to_disc_state(mountaincar, s))
-        pi[s] = action.id + 1
-        V[s] = info["best_node_f"]
+        if checkGoal(mountaincar, idx_to_disc_state(mountaincar, s))
+            pi[s] = 1
+            V[s] = 0
+        else
+            action, info = act(planner, idx_to_disc_state(mountaincar, s))
+            pi[s] = action.id + 1
+            V[s] = info["best_node_f"]
+        end
     end
     pi, V
 end
