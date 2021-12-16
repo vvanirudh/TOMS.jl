@@ -1,4 +1,4 @@
-const data_path = "/Users/avemula1/Developer/TAML/Dalinar/data/"
+const data_path = pwd() * "/data/"
 const inflated_cost = 1e6
 const number_of_runs_to_generate_heuristic = 1000
 

@@ -7,10 +7,10 @@ function generate_batch_data(
     horizon::Int64;
     policy = nothing,
 )::Array{MountainCarContTransition}
-    data = []
-    # TODO: Can be parallelized
-    for episode = 1:num_episodes
-        data = vcat(data, simulate_episode(mountaincar, params, horizon, policy = policy))
+    # data = []
+    data = @distributed (vcat) for episode = 1:num_episodes
+        # data = vcat(data, simulate_episode(mountaincar, params, horizon, policy = policy))
+        simulate_episode(mountaincar, params, horizon, policy=policy)
     end
     data
 end
@@ -113,12 +113,12 @@ function hill_climb(
     step = copy(optimization_params.initial_step_size)
     inputs = []
     outputs = []
-    println("Evaluating initial params ", optimization_params.initial_params)
+    #println("Evaluating initial params ", optimization_params.initial_params)
     push!(inputs, copy(optimization_params.initial_params))
     push!(outputs, eval_fn(inputs[1]))
     best_params = copy(optimization_params.initial_params)
     if !isnothing(least_squares_params)
-        println("Evaluating least squares params ", least_squares_params)
+        #println("Evaluating least squares params ", least_squares_params)
         push!(inputs, least_squares_params)
         push!(outputs, eval_fn(inputs[2]))
         if outputs[2] < outputs[1]
@@ -148,10 +148,7 @@ function hill_climb(
 
         new_inputs = product(new_inputs[1], new_inputs[2])
         new_inputs = [[x for x in input] for input in new_inputs]
-        # TODO: Can be parallelized
-        # new_outputs = [eval_fn(input) for input in new_inputs]
         new_outputs = pmap(eval_fn, new_inputs)
-        # new_outputs = ThreadsX.map(eval_fn, new_inputs)
         for input in new_inputs
             push!(inputs, input)
         end
@@ -226,7 +223,7 @@ function mfmc_evaluation(
         end
     end
     avg_return = total_return / num_episodes_eval
-    println("MFMC return computed as ", avg_return)
+    #println("MFMC return computed as ", avg_return)
     return avg_return
 end
 
