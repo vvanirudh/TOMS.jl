@@ -98,12 +98,12 @@ function hill_climb(
     step = copy(optimization_params.initial_step_size)
     inputs = []
     outputs = []
-    #println("Evaluating initial params ", optimization_params.initial_params)
+    println("Evaluating initial params ", optimization_params.initial_params)
     push!(inputs, copy(optimization_params.initial_params))
     push!(outputs, eval_fn(inputs[1]))
     best_params = copy(optimization_params.initial_params)
     if !isnothing(least_squares_params)
-        #println("Evaluating least squares params ", least_squares_params)
+        println("Evaluating least squares params ", least_squares_params)
         push!(inputs, least_squares_params)
         push!(outputs, eval_fn(inputs[2]))
         if outputs[2] < outputs[1]
@@ -206,7 +206,7 @@ function mfmc_evaluation(
         end
     end
     avg_return = total_return / num_episodes_eval
-    #println("MFMC return computed as ", avg_return)
+    println("MFMC return computed as ", avg_return)
     return avg_return
 end
 

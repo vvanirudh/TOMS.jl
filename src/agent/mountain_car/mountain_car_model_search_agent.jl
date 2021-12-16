@@ -27,6 +27,36 @@ function return_based_model_search(
     params
 end
 
+function planner_return_based_model_search(
+    mountaincar::MountainCar,
+    data::Array{MountainCarContTransition},
+    optimization_params::MountainCarOptimizationParameters,
+    horizon::Int64
+)
+    params = true_params
+    least_squares_params = get_least_squares_fit(mountaincar, params, data)
+    x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
+
+    function eval_fn(p)
+        policy, _ = rtaa_planning(mountaincar, p)
+        mfmc_evaluation(
+            mountaincar,
+            policy,
+            horizon,
+            x_array,
+            xnext_array,
+            cost_array,
+            10,
+        )
+    end
+    params = hill_climb(
+        eval_fn,
+        optimization_params,
+        least_squares_params = least_squares_params,
+    )
+    params
+end
+
 function bellman_based_model_search(
     mountaincar::MountainCar,
     data::Array{MountainCarContTransition},
@@ -86,6 +116,20 @@ function run_return_based_model_search(
     debug = false,
 )
     params = return_based_model_search(
+        agent.model,
+        agent.data,
+        agent.optimization_params,
+        agent.horizon,
+    )
+    run(agent, params, max_steps = max_steps, debug = debug)
+end
+
+function run_planner_return_based_model_search(
+    agent::MountainCarModelSearchAgent;
+    max_steps = 1e5,
+    debug = false,
+)
+    params = planner_return_based_model_search(
         agent.model,
         agent.data,
         agent.optimization_params,

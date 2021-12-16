@@ -30,14 +30,14 @@ function MountainCarRTAAPlanner(
     )
 end
 
-function generateHeuristic!(planner::MountainCarRTAAPlanner; max_steps = 1e4)
+function generateHeuristic!(planner::MountainCarRTAAPlanner; max_steps = 1e4, num_runs = number_of_runs_to_generate_heuristic)
     heuristic_path = getHeuristicFilePath(planner)
     if isfile(heuristic_path)
         loadHeuristic!(planner)
     else
         println("Generating Heuristic")
         clearHeuristic!(planner)
-        for i = 1:number_of_runs_to_generate_heuristic
+        for i = 1:num_runs
             state = init(planner.mountaincar; random = true)
             num_steps = 0
             while !checkGoal(planner.mountaincar, state) && num_steps < max_steps

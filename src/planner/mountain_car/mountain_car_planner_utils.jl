@@ -68,4 +68,41 @@ function generate_reward_vector(mountaincar::MountainCar)
     R
 end
 
+function rtaa_planning(
+    mountaincar::MountainCar,
+    params::Vector{Float64};
+    num_expansions::Int64 = 1000
+)
+    rtaa_planning(
+        mountaincar,
+        MountainCarParameters(params[1], params[2]),
+        num_expansions = num_expansions
+    )
+end
 
+function rtaa_planning(
+    mountaincar::MountainCar,
+    params::MountainCarParameters;
+    num_expansions::Int64 = 1000
+)
+    planner = MountainCarRTAAPlanner(mountaincar, num_expansions, params)
+    generateHeuristic!(planner)
+    convert_planner_to_policy_and_values(mountaincar, planner)
+end
+
+function convert_planner_to_policy_and_values(
+    mountaincar::MountainCar,
+    planner::MountainCarRTAAPlanner,
+)
+    n_states = mountaincar.position_discretization * mountaincar.speed_discretization
+    n_actions = 2
+    pi = zeros(Int64, n_states)
+    V = zeros(n_states)
+
+    for s = 1:n_states
+        action, info = act(planner, idx_to_disc_state(mountaincar, s))
+        pi[s] = action.id + 1
+        V[s] = info["best_node_f"]
+    end
+    pi, V
+end
