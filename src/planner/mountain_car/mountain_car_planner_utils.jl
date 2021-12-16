@@ -25,7 +25,7 @@ function value_iteration(
         for s = 1:n_states
             pi[s] = idxs[s][2]
         end
-        V = Q[idxs]
+        V = Q[idxs] 
         error_vec = abs.(V - V_old) ./ (V_old .+ 1e-50)
         criterion = maximum(error_vec)
     end
@@ -86,7 +86,7 @@ function rtaa_planning(
     num_expansions::Int64 = 1000
 )
     planner = MountainCarRTAAPlanner(mountaincar, num_expansions, params)
-    generateHeuristic!(planner, max_steps = 500, cache = false)
+    generateHeuristic!(planner; max_steps = 500, cache = false)
     convert_planner_to_policy_and_values(mountaincar, planner)
 end
 
