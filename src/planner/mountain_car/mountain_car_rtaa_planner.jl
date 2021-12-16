@@ -30,9 +30,9 @@ function MountainCarRTAAPlanner(
     )
 end
 
-function generateHeuristic!(planner::MountainCarRTAAPlanner; max_steps = 1e4, num_runs = number_of_runs_to_generate_heuristic)
+function generateHeuristic!(planner::MountainCarRTAAPlanner; max_steps = 1e4, num_runs = number_of_runs_to_generate_heuristic, cache = true)
     heuristic_path = getHeuristicFilePath(planner)
-    if isfile(heuristic_path)
+    if isfile(heuristic_path) && cache
         loadHeuristic!(planner)
     else
         println("Generating Heuristic")
@@ -49,7 +49,9 @@ function generateHeuristic!(planner::MountainCarRTAAPlanner; max_steps = 1e4, nu
         end
         planner.heuristic = deepcopy(planner.residuals)
         clearResiduals!(planner)
-        saveHeuristic(planner)
+        if cache
+            saveHeuristic(planner)
+        end
         println("Generated Heuristic")
     end
 end

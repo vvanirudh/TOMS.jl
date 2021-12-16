@@ -86,7 +86,7 @@ function rtaa_planning(
     num_expansions::Int64 = 1000
 )
     planner = MountainCarRTAAPlanner(mountaincar, num_expansions, params)
-    generateHeuristic!(planner)
+    generateHeuristic!(planner, max_steps = 500, cache = false)
     convert_planner_to_policy_and_values(mountaincar, planner)
 end
 
