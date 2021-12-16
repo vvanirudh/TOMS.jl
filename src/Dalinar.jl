@@ -12,8 +12,6 @@ using Random
 using DataStructures
 using LinearAlgebra
 using PyCall
-using Distances
-using NearestNeighbors
 using IterTools
 using Distributions
 using Distributed

@@ -46,21 +46,6 @@ function simulate_episode(
     episode_data
 end
 
-function fit_kdtree(mountaincar::MountainCar, data::Array{MountainCarContTransition})
-    Δposition = (mountaincar.max_position - mountaincar.min_position)
-    Δspeed = 2 * mountaincar.max_speed
-    data_matrix = zeros(2, length(data))
-    for idx = 1:length(data)
-        transition = data[idx]
-        data_matrix[:, idx] = [
-            transition.initial_state.position / Δposition,
-            transition.initial_state.speed / Δspeed,
-        ]
-    end
-    println("Creating kdtree with generated data")
-    KDTree(data_matrix)
-end
-
 function random_policy(mountaincar::MountainCar)
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization
     n_actions = 2
@@ -89,12 +74,12 @@ function get_least_squares_fit(
 )
     fn(p) = prediction_error(mountaincar, p, data)
     least_squares_params = scipy_optimize.leastsq(fn, vec(params))[1]
-    println(
+    #= println(
         "Least squares fit gives ",
         least_squares_params[1],
         " ",
         least_squares_params[2],
-    )
+    ) =#
     least_squares_params
 end
 
@@ -158,7 +143,7 @@ function hill_climb(
 
         new_best_params = inputs[argmin(outputs)]
         if new_best_params == best_params
-            println("Decreasing step size")
+            println("Decreasing step size at params ", best_params)
             step = step ./ 2
         else
             println("Moving to params ", new_best_params)
@@ -169,9 +154,7 @@ function hill_climb(
 end
 
 function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTransition})
-    n_states = mountaincar.position_discretization * mountaincar.speed_discretization
     n_actions = 2
-    actions = getActions(mountaincar)
     x_array::Array{Array{Array{Float64}}} = []
     xnext_array::Array{Array{MountainCarState}} = []
     cost_array::Array{Array{Float64}} = []
@@ -248,7 +231,7 @@ function bellman_evaluation(
         a = policy[cont_state_to_idx(mountaincar, x)]
         action = actions[a]
         x, c = step(mountaincar, x, action, params)
-        model_return += c
+        model_return += gamma^(t-1) * c
         if checkGoal(mountaincar, x)
             break
         end
@@ -266,7 +249,7 @@ function bellman_evaluation(
             action = actions[a]
             manual_data_index =
                 argmin(distance_fn(vec(x), x_array_copy[a], normalization))
-            x_array_copy[a][manual_data_index] = [Inf, Inf]
+            x_array_copy[a][manual_data_index, :] = [Inf, Inf]
             xnext = xnext_array[a][manual_data_index]
             xprednext, _ = step(mountaincar, x, action, params)
             # TODO: Any effect of gamma here? Since values are computing using gamma
@@ -292,25 +275,4 @@ function distance_fn(
 )::Array{Float64}
     x_row = permutedims(x)
     sum(((x_row .- xs) ./ normalization).^2, dims=2)[:, 1]
-end
-
-function get_nearest_data_index(
-    x::MountainCarState,
-    tree::KDTree,
-    used_transitions::Set{Int64};
-    query_num::Int64 = 10,
-)
-    println("NOT WORKING. NEED TO DEBUG")
-    multiplier = 1
-    while true
-        idxs, _ = knn(tree, [x.position, x.speed], multiplier * query_num, true)
-        for idx in idxs[(multiplier-1)*query_num+1:multiplier*query_num]
-            if idx ∈ used_transitions
-                continue
-            else
-                return idx
-            end
-        end
-        multiplier += 1
-    end
 end
