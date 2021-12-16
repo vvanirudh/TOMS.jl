@@ -236,6 +236,7 @@ function bellman_evaluation(
             break
         end
     end
+    println("Return in model is ", model_return)
     # Evaluate bellman error
     bellman_error = 0.0
     x_array_copy = deepcopy(x_array)
@@ -264,6 +265,7 @@ function bellman_evaluation(
         end
     end
     bellman_error = bellman_error / num_episodes_eval
+    println("Bellman error is ", bellman_error)
     println("Bellman evaluation computed as ", model_return + bellman_error)
     model_return + bellman_error
 end
