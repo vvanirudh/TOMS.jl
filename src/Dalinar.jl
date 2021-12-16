@@ -1,3 +1,4 @@
+using Distributed
 @everywhere module Dalinar
 
 using Pkg

@@ -44,7 +44,7 @@ end
 
 function mfmc_evaluation_profile()
     mountaincar = MountainCar(0.0)
-    data = generate_batch_data(mountaincar, true_params, 10, 10)
+    data = generate_batch_data(mountaincar, true_params, 1000, 500)
     x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
     policy = random_policy(mountaincar)
     mfmc_evaluation(mountaincar, policy, 500, x_array, xnext_array, cost_array, 1)

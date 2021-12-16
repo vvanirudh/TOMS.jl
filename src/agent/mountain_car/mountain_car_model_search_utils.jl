@@ -191,14 +191,15 @@ function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTr
         push!(xnext_array[a], transition.final_state)
         push!(cost_array[a], transition.cost)
     end
-    x_array, xnext_array, cost_array
+    x_array_matrices = [permutedims(hcat(x_subarray...)) for x_subarray in x_array]
+    x_array_matrices, xnext_array, cost_array
 end
 
 function mfmc_evaluation(
     mountaincar::MountainCar,
     policy::Array{Int64},
     horizon::Int64,
-    x_array::Array{Array{Array{Float64}}},
+    x_array::Array{Matrix{Float64}},
     xnext_array::Array{Array{MountainCarState}},
     cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64,
@@ -206,6 +207,7 @@ function mfmc_evaluation(
     x_array_copy = deepcopy(x_array)
     position_range = mountaincar.max_position - mountaincar.min_position
     speed_range = 2 * mountaincar.max_speed
+    normalization = permutedims([position_range, speed_range])
     total_return = 0.0
     for i = 1:num_episodes_eval
         x = init(mountaincar, cont = true)
@@ -214,8 +216,8 @@ function mfmc_evaluation(
             a = policy[cont_state_to_idx(mountaincar, x)]
             total_return += c
             manual_data_index =
-                argmin(distance_fn(vec(x), x_array_copy[a], position_range, speed_range))
-            x_array_copy[a][manual_data_index] = [Inf, Inf]
+                argmin(distance_fn(vec(x), x_array_copy[a], normalization))
+            x_array_copy[a][manual_data_index, :] = [Inf, Inf]
             x = xnext_array[a][manual_data_index]
             c = cost_array[a][manual_data_index]
             if checkGoal(mountaincar, x)
@@ -235,7 +237,7 @@ function bellman_evaluation(
     policy::Array{Int64},
     values::Array{Float64},
     horizon::Int64,
-    x_array::Array{Array{Array{Float64}}},
+    x_array::Array{Matrix{Float64}},
     xnext_array::Array{Array{MountainCarState}},
     cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64;
@@ -259,13 +261,14 @@ function bellman_evaluation(
     x_array_copy = deepcopy(x_array)
     position_range = mountaincar.max_position - mountaincar.min_position
     speed_range = 2 * mountaincar.max_speed
+    normalization = permutedims([position_range, speed_range])
     for i = 1:num_episodes_eval
         x = init(mountaincar, cont = true)
         for t = 1:horizon
             a = policy[cont_state_to_idx(mountaincar, x)]
             action = actions[a]
             manual_data_index =
-                argmin(distance_fn(vec(x), x_array_copy[a], position_range, speed_range))
+                argmin(distance_fn(vec(x), x_array_copy[a], normalization))
             x_array_copy[a][manual_data_index] = [Inf, Inf]
             xnext = xnext_array[a][manual_data_index]
             xprednext, _ = step(mountaincar, x, action, params)
@@ -287,28 +290,12 @@ end
 
 function distance_fn(
     x::Array{Float64},
-    xs::Array{Array{Float64}},
-    position_range::Float64,
-    speed_range::Float64,
+    xs::Matrix{Float64},
+    normalization::Matrix{Float64}
 )::Array{Float64}
-    # TODO: Can be parallelized
-    #[distance_fn_local(x, x_other, position_range, speed_range) for x_other in xs]
-    map(x_other->distance_fn_local(x, x_other, position_range, speed_range), xs)
+    x_row = permutedims(x)
+    sum(((x_row .- xs) ./ normalization).^2, dims=2)[:, 1]
 end
-
-
-function distance_fn_local(
-    x::Array{Float64},
-    x_other::Array{Float64},
-    position_range::Float64,
-    speed_range::Float64,
-)::Float64
-    # println("Checking distance from ", x, " to ", x_other)
-    position_distance = (x[1] - x_other[1]) / position_range
-    speed_distance = (x[2] - x_other[2]) / speed_range
-    position_distance^2 + speed_distance^2
-end
-
 
 function get_nearest_data_index(
     x::MountainCarState,
