@@ -72,6 +72,41 @@ function ensemble_experiment(rock_c::Float64, num_episodes_offline::Int64)
     n_ensemble_steps = run_return_based_model_search(agent, ensemble=true)
     println("Without ensemble ", n_steps)
     println("With ensemble ", n_ensemble_steps)
+    n_steps, n_ensemble_steps
+end
+
+function ensemble_experiment_episodes()
+    rock_c = 0.03
+    num_episodes = [100, 200, 400, 800, 1000, 2000]
+    n_steps = []
+    n_ensemble_steps = []
+    for episodes in num_episodes
+        result = ensemble_experiment(rock_c, episodes)
+        push!(n_steps, result[1])
+        push!(n_ensemble_steps, result[2])
+    end
+    plot(num_episodes, n_steps, label="Without inflation", lw=3)
+    plot!(num_episodes, n_ensemble_steps, label="with inflation", lw=3)
+    xlabel!("Number of episodes of data")
+    ylabel!("Number of steps to reach goal")
+    png("ensemble_experiment_episodes")
+end
+
+function ensemble_experiment_rock_c()
+    num_episodes = 1000
+    rock_cs = [0, 0.01, 0.02, 0.03, 0.04]
+    n_steps = []
+    n_ensemble_steps = []
+    for rock_c in rock_cs
+        result = ensemble_experiment(rock_c, num_episodes)
+        push!(n_steps, result[1])
+        push!(n_ensemble_steps, result[2])
+    end
+    plot(rock_cs, n_steps, label="Without inflation", lw=3)
+    plot!(rock_cs, n_ensemble_steps, label="with inflation", lw=3)
+    xlabel!("Rock_c")
+    ylabel!("Number of steps to reach goal")
+    png("ensemble_experiment_rock_c")
 end
 
 function mountaincar_bellman_based_model_search()
