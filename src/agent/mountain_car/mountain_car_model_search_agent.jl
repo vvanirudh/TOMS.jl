@@ -167,20 +167,21 @@ function run(
     max_steps = 1e5,
     debug = false,
 )
-    planner = MountainCarRTAAPlanner(
-        agent.model,
-        1000,
-        MountainCarParameters(params[1], params[2]),
-    )
-    # policy, _ = value_iteration(agent.model, params)
+    # planner = MountainCarRTAAPlanner(
+    #     agent.model,
+    #     1000,
+    #     MountainCarParameters(params[1], params[2]),
+    # )
+    policy, _ = value_iteration(agent.model, params)
+    actions = getActions(agent.mountaincar)
     generateHeuristic!(planner)
     state = init(agent.mountaincar; cont = true)
     num_steps = 0
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
         num_steps += 1
-        # best_action = actions[policy[cont_state_to_idx(agent.mountaincar, state)]]
-        best_action, info = act(planner, cont_state_to_disc(agent.mountaincar, state))
-        updateResiduals!(planner, info)
+        best_action = actions[policy[cont_state_to_idx(agent.mountaincar, state)]]
+        # best_action, info = act(planner, cont_state_to_disc(agent.mountaincar, state))
+        # updateResiduals!(planner, info)
         state, cost =
             step(agent.mountaincar, state, best_action, true_params, debug = debug)
         if debug
