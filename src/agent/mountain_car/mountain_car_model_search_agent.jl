@@ -174,7 +174,7 @@ function run(
     # )
     policy, _ = value_iteration(agent.model, params)
     actions = getActions(agent.mountaincar)
-    generateHeuristic!(planner)
+    # generateHeuristic!(planner)
     state = init(agent.mountaincar; cont = true)
     num_steps = 0
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
