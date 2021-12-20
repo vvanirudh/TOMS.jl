@@ -60,6 +60,18 @@ function mountaincar_planner_return_based_model_search()
     println(n_steps)
 end
 
+function ensemble_experiment(rock_c::Float64, num_episodes_offline::Int64)
+    model = MountainCar(0.0)
+    mountaincar = MountainCar(rock_c)
+    horizon = 500
+    data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon)
+    agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
+    n_steps = run_return_based_model_search(agent)
+    n_ensemble_steps = run_return_based_model_search(agent, ensemble=true)
+    println("Without ensemble ", n_steps)
+    println("With ensemble ", n_ensemble_steps)
+end
+
 function mountaincar_bellman_based_model_search()
     model = MountainCar(0.0)
     mountaincar = MountainCar(0.03)

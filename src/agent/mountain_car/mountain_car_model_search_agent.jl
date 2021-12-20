@@ -112,6 +112,15 @@ function MountainCarModelSearchAgent(
 )
     data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon)
     println("Generated ", length(data), " transitions offline")
+    MountainCarModelSearchAgent(mountaincar, model, horizon, data)
+end
+
+function MountainCarModelSearchAgent(
+    mountaincar::MountainCar,
+    model::MountainCar,
+    horizon::Int64,
+    data::Array{MountainCarContTransition},
+)
     optimization_params =
         MountainCarOptimizationParameters([0.0024, 1], [-0.0025, 3], 90, false)
     MountainCarModelSearchAgent(mountaincar, model, data, optimization_params, horizon)
