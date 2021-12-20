@@ -60,23 +60,23 @@ end
 function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTransition})
     n_actions = 2
     x_array::Array{Array{Array{Float64}}} = []
-    xnext_array::Array{Array{MountainCarState}} = []
+    xnext_array::Array{Array{Array{Float64}}} = []
     cost_array::Array{Array{Float64}} = []
     for a = 1:n_actions
         push!(x_array, [])
-        push!(xnext_array, MountainCarState[])
-        push!(cost_array, Float64[])
+        push!(xnext_array, [])
+        push!(cost_array, [])
     end
 
     for i = 1:length(data)
         transition = data[i]
         a = transition.action.id + 1
         push!(x_array[a], vec(transition.initial_state))
-        push!(xnext_array[a], transition.final_state)
+        push!(xnext_array[a], vec(transition.final_state))
         push!(cost_array[a], transition.cost)
     end
     x_array_matrices = [permutedims(hcat(x_subarray...)) for x_subarray in x_array]
-    x_array_matrices, xnext_array, cost_array
+    x_array_matrices, x_array, xnext_array, cost_array
 end
 
 function prediction_error(
@@ -171,7 +171,7 @@ function mfmc_evaluation(
     policy::Array{Int64},
     horizon::Int64,
     x_array::Array{Matrix{Float64}},
-    xnext_array::Array{Array{MountainCarState}},
+    xnext_array::Array{Array{Array{Float64}}},
     cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64,
 )
@@ -189,7 +189,7 @@ function mfmc_evaluation(
             manual_data_index =
                 argmin(distance_fn(vec(x), x_array_copy[a], normalization))
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
-            x = xnext_array[a][manual_data_index]
+            x = unvec(xnext_array[a][manual_data_index], cont = true)
             c = cost_array[a][manual_data_index]
             if checkGoal(mountaincar, x)
                 break
@@ -201,6 +201,17 @@ function mfmc_evaluation(
     return avg_return
 end
 
+function mfmc_gp_evaluation(
+    mountaincar::MountainCar,
+    policy::Array{Int64},
+    horizon::Int64,
+    x_array::Array{Matrix{Float64}},
+    xnext_array::Array{Array{MountainCarState}},
+    cost_array::Array{Array{Float64}},
+    num_episodes_eval::Int64,
+)
+    return nothing
+end
 
 function bellman_evaluation(
     mountaincar::MountainCar,
@@ -209,7 +220,7 @@ function bellman_evaluation(
     values::Array{Float64},
     horizon::Int64,
     x_array::Array{Matrix{Float64}},
-    xnext_array::Array{Array{MountainCarState}},
+    xnext_array::Array{Array{Array{Float64}}},
     cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64;
     gamma::Float64 = 0.99,
@@ -242,7 +253,7 @@ function bellman_evaluation(
             manual_data_index =
                 argmin(distance_fn(vec(x), x_array_copy[a], normalization))
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
-            xnext = xnext_array[a][manual_data_index]
+            xnext = unvec(xnext_array[a][manual_data_index], cont = true)
             xprednext, _ = step(mountaincar, x, action, params)
             # TODO: Any effect of gamma here? Since values are computing using gamma
             bellman_error += abs(

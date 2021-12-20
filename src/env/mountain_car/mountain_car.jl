@@ -21,6 +21,14 @@ function vec(disc_state::MountainCarDiscState)::Array{Int64}
     [disc_state.disc_position, disc_state.disc_speed]
 end
 
+function unvec(state::Array{Float64}; cont::Bool)
+    if cont
+        return MountainCarState(state[1], state[2])
+    else
+        return MountainCarDiscState(state[1], state[2])
+    end
+end
+
 struct MountainCarAction <: Action
     id::Int64
 end

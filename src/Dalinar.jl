@@ -15,6 +15,7 @@ using PyCall
 using IterTools
 using Distributions
 using Distributed
+using GaussianProcesses
 
 Random.seed!(0)
 

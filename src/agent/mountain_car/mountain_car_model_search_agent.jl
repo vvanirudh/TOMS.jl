@@ -16,13 +16,13 @@ function return_based_model_search(
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
+    x_matrices_array, x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
 
     eval_fn(p) = mfmc_evaluation(
         mountaincar,
         value_iteration(mountaincar, p)[1],
         horizon,
-        x_array,
+        x_matrices_array,
         xnext_array,
         cost_array,
         10,
@@ -43,7 +43,7 @@ function planner_return_based_model_search(
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
+    x_matrices_array, x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
 
     function eval_fn(p)
         policy, _ = rtaa_planning(mountaincar, p)
@@ -51,7 +51,7 @@ function planner_return_based_model_search(
             mountaincar,
             policy,
             horizon,
-            x_array,
+            x_matrices_array,
             xnext_array,
             cost_array,
             10,
@@ -73,7 +73,7 @@ function bellman_based_model_search(
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
+    x_matrices_array, x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
 
     function eval_fn(p)
         policy, values = value_iteration(mountaincar, p)
@@ -83,7 +83,7 @@ function bellman_based_model_search(
             policy,
             values,
             horizon,
-            x_array,
+            x_matrices_array,
             xnext_array,
             cost_array,
             10,
