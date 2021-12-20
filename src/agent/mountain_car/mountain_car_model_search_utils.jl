@@ -1,5 +1,12 @@
 scipy_optimize = pyimport("scipy.optimize")
 
+struct MountainCarOptimizationParameters
+    initial_step_size::Array{Float64}
+    initial_params::Array{Float64}
+    maximum_evaluations::Int64
+    only_positive::Bool
+end
+
 function generate_batch_data(
     mountaincar::MountainCar,
     params::MountainCarParameters,
@@ -7,9 +14,7 @@ function generate_batch_data(
     horizon::Int64;
     policy = nothing,
 )::Array{MountainCarContTransition}
-    # data = []
     data = @distributed (vcat) for episode = 1:num_episodes
-        # data = vcat(data, simulate_episode(mountaincar, params, horizon, policy = policy))
         simulate_episode(mountaincar, params, horizon, policy=policy)
     end
     data
@@ -52,6 +57,28 @@ function random_policy(mountaincar::MountainCar)
     rand(1:n_actions, n_states)
 end
 
+function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTransition})
+    n_actions = 2
+    x_array::Array{Array{Array{Float64}}} = []
+    xnext_array::Array{Array{MountainCarState}} = []
+    cost_array::Array{Array{Float64}} = []
+    for a = 1:n_actions
+        push!(x_array, [])
+        push!(xnext_array, MountainCarState[])
+        push!(cost_array, Float64[])
+    end
+
+    for i = 1:length(data)
+        transition = data[i]
+        a = transition.action.id + 1
+        push!(x_array[a], vec(transition.initial_state))
+        push!(xnext_array[a], transition.final_state)
+        push!(cost_array[a], transition.cost)
+    end
+    x_array_matrices = [permutedims(hcat(x_subarray...)) for x_subarray in x_array]
+    x_array_matrices, xnext_array, cost_array
+end
+
 function prediction_error(
     mountaincar::MountainCar,
     params::Array{Float64},
@@ -73,21 +100,7 @@ function get_least_squares_fit(
     data::Array{MountainCarContTransition},
 )
     fn(p) = prediction_error(mountaincar, p, data)
-    least_squares_params = scipy_optimize.leastsq(fn, vec(params))[1]
-    #= println(
-        "Least squares fit gives ",
-        least_squares_params[1],
-        " ",
-        least_squares_params[2],
-    ) =#
-    least_squares_params
-end
-
-struct MountainCarOptimizationParameters
-    initial_step_size::Array{Float64}
-    initial_params::Array{Float64}
-    maximum_evaluations::Int64
-    only_positive::Bool
+    scipy_optimize.leastsq(fn, vec(params))[1]
 end
 
 function hill_climb(
@@ -151,28 +164,6 @@ function hill_climb(
         end
     end
     inputs[argmin(outputs)]
-end
-
-function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTransition})
-    n_actions = 2
-    x_array::Array{Array{Array{Float64}}} = []
-    xnext_array::Array{Array{MountainCarState}} = []
-    cost_array::Array{Array{Float64}} = []
-    for a = 1:n_actions
-        push!(x_array, [])
-        push!(xnext_array, MountainCarState[])
-        push!(cost_array, Float64[])
-    end
-
-    for i = 1:length(data)
-        transition = data[i]
-        a = transition.action.id + 1
-        push!(x_array[a], vec(transition.initial_state))
-        push!(xnext_array[a], transition.final_state)
-        push!(cost_array[a], transition.cost)
-    end
-    x_array_matrices = [permutedims(hcat(x_subarray...)) for x_subarray in x_array]
-    x_array_matrices, xnext_array, cost_array
 end
 
 function mfmc_evaluation(

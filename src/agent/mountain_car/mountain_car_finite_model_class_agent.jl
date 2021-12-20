@@ -14,7 +14,7 @@ function MountainCarFiniteModelClassAgent(
 end
 
 function run(agent::MountainCarFiniteModelClassAgent; max_steps = 1e4, debug = false)::Int64
-    state = init(agent.mountaincar)
+    state = init(agent.mountaincar; cont = true)
     num_steps = 0
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
         num_steps += 1
@@ -37,7 +37,7 @@ function run(agent::MountainCarFiniteModelClassAgent; max_steps = 1e4, debug = f
         end
         best_planner = agent.planners[best_planner_idx]
         # Get action according to best planner
-        best_action, info = act(best_planner, state)
+        best_action, info = act(best_planner, cont_state_to_disc(agent.mountaincar, state))
         # Update residuals
         updateResiduals!(best_planner, info)
         # step in env
@@ -45,7 +45,12 @@ function run(agent::MountainCarFiniteModelClassAgent; max_steps = 1e4, debug = f
         # Add transition to Queue
         enqueue!(
             agent.transitions,
-            MountainCarTransition(state, best_action, cost, new_state),
+            MountainCarTransition(
+                cont_state_to_disc(agent.mountaincar, state),
+                best_action,
+                cost,
+                cont_state_to_disc(agent.mountaincar, new_state),
+            ),
         )
         state = new_state
     end
@@ -119,7 +124,7 @@ function MountainCarFiniteModelClassLocalAgent(
 end
 
 function run(agent::MountainCarFiniteModelClassLocalAgent; max_steps = 1e4, debug = false)
-    state = init(agent.finite_model_class_agent.mountaincar)
+    state = init(agent.finite_model_class_agent.mountaincar; cont = true)
     num_steps = 0
     while !checkGoal(agent.finite_model_class_agent.mountaincar, state) &&
         num_steps < max_steps
@@ -148,7 +153,10 @@ function run(agent::MountainCarFiniteModelClassLocalAgent; max_steps = 1e4, debu
             end
         end
         # Get action according to best planner
-        best_action, info = act(best_planner, state)
+        best_action, info = act(
+            best_planner,
+            cont_state_to_disc(agent.finite_model_class_agent.mountaincar, state),
+        )
         # update residuals
         updateResiduals!(best_planner, info)
         # step in env
@@ -158,11 +166,19 @@ function run(agent::MountainCarFiniteModelClassLocalAgent; max_steps = 1e4, debu
             best_action,
             true_params,
         )
-        if inDiscrepancyRegion(agent, state)
+        if inDiscrepancyRegion(
+            agent,
+            cont_state_to_disc(agent.finite_model_class_agent.mountaincar, state),
+        )
             # Add to transitions
             enqueue!(
                 agent.finite_model_class_agent.transitions,
-                MountainCarTransition(state, best_action, cost, new_state),
+                MountainCarTransition(
+                    cont_state_to_disc(agent.finite_model_class_agent.mountaincar, state),
+                    best_action,
+                    cost,
+                    cont_state_to_disc(agent.finite_model_class_agent.mountaincar, new_state),
+                ),
             )
         end
         state = new_state

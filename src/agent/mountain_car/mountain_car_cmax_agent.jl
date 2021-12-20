@@ -5,11 +5,11 @@ struct MountainCarCMAXAgent
 end
 
 function run(agent::MountainCarCMAXAgent; max_steps = 1e5)
-    state = init(agent.mountaincar)
+    state = init(agent.mountaincar; cont = true)
     num_steps = 0
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
         num_steps += 1
-        best_action, info = act(agent.cmax_planner, state)
+        best_action, info = act(agent.cmax_planner, cont_state_to_disc(agent.mountaincar, state))
         new_state, cost = step(agent.mountaincar, state, best_action, true_params)
         # Check if sim prediction matches true next state
         sim_state, _ = step(
@@ -20,9 +20,13 @@ function run(agent::MountainCarCMAXAgent; max_steps = 1e5)
         )
         if sim_state != new_state
             # println("Discrepancy detected")
-            addDiscrepancy!(agent.cmax_planner, state, best_action)
+            addDiscrepancy!(
+                agent.cmax_planner,
+                cont_state_to_disc(agent.mountaincar, state),
+                best_action
+            )
             # replan
-            _, info = act(agent.cmax_planner, state)
+            _, info = act(agent.cmax_planner, cont_state_to_disc(agent.mountaincar, state))
         end
         updateResiduals!(agent.cmax_planner, info)
         state = new_state

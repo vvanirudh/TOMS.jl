@@ -1,5 +1,13 @@
 include("mountain_car_model_search_utils.jl")
 
+struct MountainCarModelSearchAgent
+    mountaincar::MountainCar
+    model::MountainCar
+    data::Array{MountainCarContTransition}
+    optimization_params::MountainCarOptimizationParameters
+    horizon::Int64
+end
+
 function return_based_model_search(
     mountaincar::MountainCar,
     data::Array{MountainCarContTransition},
@@ -89,14 +97,6 @@ function bellman_based_model_search(
     params
 end
 
-struct MountainCarModelSearchAgent
-    mountaincar::MountainCar
-    model::MountainCar
-    data::Array{MountainCarContTransition}
-    optimization_params::MountainCarOptimizationParameters
-    horizon::Int64
-end
-
 function MountainCarModelSearchAgent(
     mountaincar::MountainCar,
     model::MountainCar,
@@ -163,19 +163,19 @@ function run(
         1000,
         MountainCarParameters(params[1], params[2]),
     )
+    # policy, _ = value_iteration(agent.model, params)
     generateHeuristic!(planner)
-    state = init(agent.mountaincar)
+    state = init(agent.mountaincar; cont = true)
     num_steps = 0
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
         num_steps += 1
-        # best_action = actions[policy[disc_state_to_idx(agent.mountaincar, state)]]
-        best_action, info = act(planner, state)
+        # best_action = actions[policy[cont_state_to_idx(agent.mountaincar, state)]]
+        best_action, info = act(planner, cont_state_to_disc(agent.mountaincar, state))
         updateResiduals!(planner, info)
         state, cost =
             step(agent.mountaincar, state, best_action, true_params, debug = debug)
         if debug
-            cont_state = disc_state_to_cont(agent.mountaincar, state)
-            println(cont_state.position, " ", cont_state.speed, " ", best_action.id)
+            println(state.position, " ", state.speed, " ", best_action.id)
         end
     end
     if num_steps < max_steps
