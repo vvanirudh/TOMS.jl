@@ -29,6 +29,7 @@ function mountaincar_bellman_based_model_search_main()
 end
 
 function mountaincar_return_based_model_search()
+    Random.seed!(0)
     model = MountainCar(0.0)
     mountaincar = MountainCar(0.03)
     horizon = 500
@@ -39,6 +40,7 @@ function mountaincar_return_based_model_search()
 end
 
 function mountaincar_return_ensemble_based_model_search()
+    Random.seed!(0)
     model = MountainCar(0.0)
     mountaincar = MountainCar(0.03)
     horizon = 500
