@@ -59,7 +59,7 @@ end
 function fit_ensemble(
     x_array::Array{Array{Float64}},
     disp_array::Array{Array{Float64}};
-    ensemble_size::Int64 = 4,
+    ensemble_size::Int64 = 10,
 )
     models = []
     for ensemble=1:ensemble_size
