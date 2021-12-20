@@ -1,4 +1,4 @@
-include("mountain_car_model_search_utils.jl")
+include("model_search/mountain_car_model_search_utils.jl")
 
 struct MountainCarModelSearchAgent
     mountaincar::MountainCar
@@ -13,35 +13,26 @@ function return_based_model_search(
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
-    gp::Bool = false,
+    ensemble::Bool = true
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_matrices_array, x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
+    x_matrices_array, x_array, x_next_array, disp_array, cost_array = preprocess_data(mountaincar, data)
+    ensembles = nothing
+    if ensemble
+        ensembles = fit_ensembles(x_array, disp_array)
+    end
 
     eval_fn(p) = mfmc_evaluation(
         mountaincar,
         value_iteration(mountaincar, p)[1],
         horizon,
         x_matrices_array,
-        xnext_array,
+        x_next_array,
         cost_array,
         10,
+        ensembles = ensembles
     )
-
-    if gp
-        gps = fit_gps(x_array, xnext_array)
-        eval_fn(p) = mfmc_gp_evaluation(
-            mountaincar,
-            value_iteration(mountaincar, p)[1],
-            horizon,
-            gps,
-            x_matrices_array,
-            xnext_array,
-            cost_array,
-            10,
-        )
-    end
 
     params = hill_climb(
         eval_fn,
@@ -59,7 +50,7 @@ function planner_return_based_model_search(
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_matrices_array, x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
+    x_matrices_array, x_array, xnext_array, disp_array, cost_array = preprocess_data(mountaincar, data)
 
     function eval_fn(p)
         policy, _ = rtaa_planning(mountaincar, p)
@@ -128,7 +119,7 @@ end
 
 function run_return_based_model_search(
     agent::MountainCarModelSearchAgent;
-    gp = false,
+    ensemble = false,
     max_steps = 1e5,
     debug = false,
 )
@@ -137,7 +128,7 @@ function run_return_based_model_search(
         agent.data,
         agent.optimization_params,
         agent.horizon,
-        gp = gp
+        ensemble = ensemble
     )
     run(agent, params, max_steps = max_steps, debug = debug)
 end
