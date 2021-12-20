@@ -61,6 +61,7 @@ function mountaincar_planner_return_based_model_search()
 end
 
 function ensemble_experiment(rock_c::Float64, num_episodes_offline::Int64)
+    Random.seed!(0)
     model = MountainCar(0.0)
     mountaincar = MountainCar(rock_c)
     horizon = 500

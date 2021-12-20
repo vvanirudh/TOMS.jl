@@ -15,8 +15,9 @@ function generate_batch_data(
     horizon::Int64;
     policy = nothing,
 )::Array{MountainCarContTransition}
-    data = @distributed (vcat) for episode = 1:num_episodes
-        simulate_episode(mountaincar, params, horizon, policy=policy)
+    data = []
+    for episode = 1:num_episodes
+        data = vcat(data, simulate_episode(mountaincar, params, horizon, policy=policy))
     end
     data
 end
