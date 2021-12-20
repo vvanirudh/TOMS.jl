@@ -66,6 +66,7 @@ function ensemble_experiment(rock_c::Float64, num_episodes_offline::Int64)
     mountaincar = MountainCar(rock_c)
     horizon = 500
     data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon)
+    println("Generated ", length(data), " transitions")
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
     n_steps = run_return_based_model_search(agent)
     n_ensemble_steps = run_return_based_model_search(agent, ensemble=true)

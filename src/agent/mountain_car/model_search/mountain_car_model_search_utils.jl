@@ -19,6 +19,7 @@ function generate_batch_data(
     for episode = 1:num_episodes
         data = vcat(data, simulate_episode(mountaincar, params, horizon, policy=policy))
     end
+    data = vcat(data, simulate_episode(mountaincar, params, horizon, policy = good_policy(mountaincar)))
     data
 end
 
@@ -57,6 +58,10 @@ function random_policy(mountaincar::MountainCar)
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization
     n_actions = 2
     rand(1:n_actions, n_states)
+end
+
+function good_policy(mountaincar::MountainCar)
+    value_iteration(mountaincar, true_params)[1]
 end
 
 function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTransition})
