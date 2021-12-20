@@ -214,7 +214,7 @@ function mfmc_evaluation(
                 max_distance = find_max_distance(predictions)
             end
             # println("Distance is ", max_distance)
-            inflation = max(1 + max_distance, max_inflation)
+            inflation = min(1 + max_distance, max_inflation)
             x = unvec(xnext_array[a][manual_data_index], cont = true)
             c = inflation * cost_array[a][manual_data_index]
             if checkGoal(mountaincar, x)
