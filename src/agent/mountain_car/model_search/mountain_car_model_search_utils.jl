@@ -193,6 +193,7 @@ function mfmc_evaluation(
     num_episodes_eval::Int64;
     ensembles = nothing,
     max_inflation = 2.0,
+    scale = 10.0,
 )
     x_array_copy = deepcopy(x_array)
     position_range = mountaincar.max_position - mountaincar.min_position
@@ -214,7 +215,7 @@ function mfmc_evaluation(
                 max_distance = find_max_distance(predictions)
             end
             # println("Distance is ", max_distance)
-            inflation = min(1 + max_distance, max_inflation)
+            inflation = min(1 + scale * max_distance, max_inflation)
             x = unvec(xnext_array[a][manual_data_index], cont = true)
             c = inflation * cost_array[a][manual_data_index]
             if checkGoal(mountaincar, x)
