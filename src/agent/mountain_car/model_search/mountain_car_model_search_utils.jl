@@ -193,7 +193,7 @@ function mfmc_evaluation(
     num_episodes_eval::Int64;
     ensembles = nothing,
     max_inflation = 2.0,
-    scale = 10.0,
+    scale = 1.0,
 )
     x_array_copy = deepcopy(x_array)
     position_range = mountaincar.max_position - mountaincar.min_position
