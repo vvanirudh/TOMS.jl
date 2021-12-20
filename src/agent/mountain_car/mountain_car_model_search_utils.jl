@@ -79,6 +79,43 @@ function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTr
     x_array_matrices, x_array, xnext_array, cost_array
 end
 
+function fit_gps(
+    x_array::Array{Array{Array{Float64}}},
+    x_next_array::Array{Array{Array{Float64}}},
+)
+    n_actions = length(x_array)
+    disp_array = get_disp(x_array, x_next_array)
+    gps = []
+    for a = 1:n_actions
+        x = hcat(x_array[a]...)
+        disp = hcat(disp_array[a]...)
+        mZero = MeanZero()
+        kern = SE(0.0, 0.0)
+        logObsNoise = -4.0
+        gp = GP(x, disp, mZero, kern, logObsNoise)
+        optimize!(gp)
+        push!(gps, gp)
+    end
+    gps
+end
+
+function get_disp(
+    x_array::Array{Array{Array{Float64}}},
+    x_next_array::Array{Array{Array{Float64}}},
+)
+    n_actions = length(x_array)
+    disp_array = []
+    for a = 1:n_actions
+        push!(disp_array, [])
+        for i = 1:length(x_array[a])
+            x = x_array[a][i]
+            xnext = x_next_array[a][i]
+            push!(disp_array[a], xnext - x)
+        end
+    end
+    disp_array
+end
+
 function prediction_error(
     mountaincar::MountainCar,
     params::Array{Float64},
@@ -205,12 +242,39 @@ function mfmc_gp_evaluation(
     mountaincar::MountainCar,
     policy::Array{Int64},
     horizon::Int64,
+    gps::Array{GP},
     x_array::Array{Matrix{Float64}},
-    xnext_array::Array{Array{MountainCarState}},
+    xnext_array::Array{Array{Array{Float64}}},
     cost_array::Array{Array{Float64}},
-    num_episodes_eval::Int64,
+    num_episodes_eval::Int64;
+    max_inflation::Float64 = 5.0,
 )
-    return nothing
+    x_array_copy = deepcopy(x_array)
+    position_range = mountaincar.max_position - mountaincar.min_position
+    speed_range = 2 * mountaincar.max_speed
+    normalization = permutedims([position_range, speed_range])
+    total_return = 0.0
+    for i = 1:num_episodes_eval
+        x = init(mountaincar, cont = true)
+        c = 1.0
+        for t = 1:horizon
+            a = policy[cont_state_to_idx(mountaincar, x)]
+            total_return += c
+            manual_data_index =
+                argmin(distance_fn(vec(x), x_array_copy[a], normalization))
+            x_array_copy[a][manual_data_index, :] = [Inf, Inf]
+            x = unvec(xnext_array[a][manual_data_index], cont = true)
+            _, variance = predict_f(gps[a], x)
+            inflation = min(1 + variance, max_inflation)
+            c = inflation * cost_array[a][manual_data_index]
+            if checkGoal(mountaincar, x)
+                break
+            end
+        end
+    end
+    avg_return = total_return / num_episodes_eval
+    println("MFMC return computed as ", avg_return)
+    return avg_return
 end
 
 function bellman_evaluation(

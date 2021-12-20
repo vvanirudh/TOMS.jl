@@ -16,6 +16,7 @@ using IterTools
 using Distributions
 using Distributed
 using GaussianProcesses
+using Optim
 
 Random.seed!(0)
 

@@ -12,7 +12,8 @@ function return_based_model_search(
     mountaincar::MountainCar,
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
-    horizon::Int64,
+    horizon::Int64;
+    gp::Bool = false,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -27,6 +28,21 @@ function return_based_model_search(
         cost_array,
         10,
     )
+
+    if gp
+        gps = fit_gps(x_array, xnext_array)
+        eval_fn(p) = mfmc_gp_evaluation(
+            mountaincar,
+            value_iteration(mountaincar, p)[1],
+            horizon,
+            gps,
+            x_matrices_array,
+            xnext_array,
+            cost_array,
+            10,
+        )
+    end
+
     params = hill_climb(
         eval_fn,
         optimization_params,
@@ -112,6 +128,7 @@ end
 
 function run_return_based_model_search(
     agent::MountainCarModelSearchAgent;
+    gp = false,
     max_steps = 1e5,
     debug = false,
 )
@@ -120,6 +137,7 @@ function run_return_based_model_search(
         agent.data,
         agent.optimization_params,
         agent.horizon,
+        gp = gp
     )
     run(agent, params, max_steps = max_steps, debug = debug)
 end
