@@ -61,7 +61,7 @@ function random_policy(mountaincar::MountainCar)
 end
 
 function good_policy(mountaincar::MountainCar)
-    value_iteration(mountaincar, true_params)[1]
+    value_iteration(mountaincar, vec(true_params))[1]
 end
 
 function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTransition})
