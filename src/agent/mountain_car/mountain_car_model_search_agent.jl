@@ -13,7 +13,8 @@ function return_based_model_search(
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
-    ensemble::Bool = true
+    ensemble::Bool = false,
+    hardcoded::Bool = false,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -30,8 +31,9 @@ function return_based_model_search(
         x_matrices_array,
         x_next_array,
         cost_array,
-        10,
-        ensembles = ensembles
+        10;
+        ensembles = ensembles,
+        hardcoded = hardcoded,
     )
 
     params = hill_climb(
@@ -129,6 +131,7 @@ end
 function run_return_based_model_search(
     agent::MountainCarModelSearchAgent;
     ensemble = false,
+    hardcoded = false,
     max_steps = 1e5,
     debug = false,
 )
@@ -136,8 +139,9 @@ function run_return_based_model_search(
         agent.model,
         agent.data,
         agent.optimization_params,
-        agent.horizon,
-        ensemble = ensemble
+        agent.horizon;
+        ensemble = ensemble,
+        hardcoded = hardcoded,
     )
     run(agent, params, max_steps = max_steps, debug = debug)
 end

@@ -80,6 +80,19 @@ function predict_ensemble(
     predictions
 end
 
+function fit_ensembles(
+    x_array::Array{Array{Array{Float64}}},
+    disp_array::Array{Array{Array{Float64}}}, 
+)
+    ensembles = []
+    n_actions = length(x_array)
+    for a=1:n_actions
+        println("Fitting ensembles for action ", a)
+        push!(ensembles, fit_ensemble(x_array[a], disp_array[a]))
+    end
+    ensembles
+end
+
 function find_max_distance(
     predictions::Array{Array{Float64}}
 )
