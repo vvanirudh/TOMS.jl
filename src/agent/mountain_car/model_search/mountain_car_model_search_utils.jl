@@ -105,7 +105,7 @@ function mfmc_evaluation(
                 max_distance = find_max_distance(predictions)
             end
             if hardcoded
-                max_distance = abs(x.position - x_approx[1]) + abs(x.speed - x_approx[2])
+                max_distance = abs(x.position - x_approx[1]) + 10.0 * abs(x.speed - x_approx[2])
             end
             # println("Distance is ", max_distance)
             inflation = min(1 + scale * max_distance, max_inflation)
