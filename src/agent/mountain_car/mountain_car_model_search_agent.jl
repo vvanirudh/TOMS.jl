@@ -100,7 +100,7 @@ function bellman_based_model_search(
                 gamma = gamma,
             )
         else
-            print("Value Iteration did not converge. Skipping parameters ", p)
+            println("Value Iteration did not converge. Skipping parameters ", p)
             return horizon
         end
     end

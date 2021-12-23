@@ -164,14 +164,14 @@ function bellman_evaluation(
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
             xnext = unvec(xnext_array[a][manual_data_index], cont = true)
             xprednext, _ = step(mountaincar, x, action, params)
-            # bellman_error += abs(
-            #     values[cont_state_to_idx(mountaincar, xnext)] -
-            #     values[cont_state_to_idx(mountaincar, xprednext)],
-            # )
-            bellman_error += (
-                values[cont_state_to_idx(mountaincar, xnext)] - 
-                values[cont_state_to_idx(mountaincar, xprednext)]
+            bellman_error += abs(
+                values[cont_state_to_idx(mountaincar, xnext)] -
+                values[cont_state_to_idx(mountaincar, xprednext)],
             )
+            # bellman_error += (
+            #     values[cont_state_to_idx(mountaincar, xnext)] - 
+            #     values[cont_state_to_idx(mountaincar, xprednext)]
+            # )
             x = xnext
             if checkGoal(mountaincar, x)
                 break
