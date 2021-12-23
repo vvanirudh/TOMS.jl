@@ -32,7 +32,7 @@ function value_iteration(
         error_vec = get_error_vec(V, V_old)
         criterion = maximum(error_vec)
     end
-    println("Value iteration finished with criterion ", criterion, " with gamma ", gamma)
+    # println("Value iteration finished with criterion ", criterion, " with gamma ", gamma)
     # removing absorbing state
     pi[1:n_states-1], V[1:n_states-1], count != max_iterations
 end
