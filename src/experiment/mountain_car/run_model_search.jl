@@ -119,6 +119,51 @@ function mountaincar_bellman_based_model_search_main()
     model_search_steps
 end
 
+function bellman_experiment(rock_c::Float64, num_episodes_offline::Int64)
+    Random.seed!(0)
+    model = MountainCar(0.0)
+    mountaincar = MountainCar(rock_c)
+    horizon = 500
+    data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon)
+    println("Generated ", length(data), " transitions")
+    agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
+    n_steps = run_return_based_model_search(agent)
+    n_bellman_steps = run_bellman_based_model_search(agent)
+    println("Return ", n_steps)
+    println("Bellman ", n_bellman_steps)
+    n_steps, n_bellman_steps
+end
+
+function bellman_experiment_episodes()
+    rock_c = 0.035
+    num_episodes = [100, 200, 400, 800, 1000, 2000]
+    n_steps = []
+    n_bellman_steps = []
+    for episodes in num_episodes
+        result = bellman_experiment(rock_c, episodes)
+        push!(n_steps, result[1])
+        push!(n_bellman_steps, result[2])
+    end
+    println(num_episodes)
+    println(n_steps)
+    println(n_bellman_steps)
+end
+
+function bellman_experiment_rock_c()
+    num_episodes = 1000
+    rock_cs = [0, 0.01, 0.02, 0.03, 0.04]
+    n_steps = []
+    n_bellman_steps = []
+    for rock_c in rock_cs
+        result = bellman_experiment(rock_c, num_episodes)
+        push!(n_steps, result[1])
+        push!(n_bellman_steps, result[2])
+    end
+    println(num_episodes)
+    println(n_steps)
+    println(n_bellman_steps)
+end
+
 # PROFILING FUNCTIONS
 function mfmc_evaluation_profile()
     mountaincar = MountainCar(0.0)
