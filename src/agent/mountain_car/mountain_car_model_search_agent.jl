@@ -101,7 +101,7 @@ function bellman_based_model_search(
             )
         else
             println("Value Iteration did not converge. Skipping parameters ", p)
-            return horizon
+            return Inf
         end
     end
     params = hill_climb(
@@ -191,7 +191,7 @@ function run(
     #     1000,
     #     MountainCarParameters(params[1], params[2]),
     # )
-    policy, _ = value_iteration(agent.model, params)
+    policy, _, _ = value_iteration(agent.model, params)
     actions = getActions(agent.mountaincar)
     # generateHeuristic!(planner)
     state = init(agent.mountaincar; cont = true)
