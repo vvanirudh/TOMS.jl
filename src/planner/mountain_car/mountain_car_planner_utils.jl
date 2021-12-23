@@ -3,6 +3,7 @@ function value_iteration(
     params::Array{Float64};
     threshold = 1e-5,
     gamma = 0.99,
+    max_iterations = 1e4,
 )
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization + 1
     n_actions = 2
@@ -12,9 +13,11 @@ function value_iteration(
     pi = zeros(Int64, n_states)
     V = 2 * V_old
     Q = zeros((n_states, n_actions))
-    error_vec = abs.(V - V_old) ./ (V_old .+ 1e-50)
+    error_vec = get_error_vec(V, V_old)
     criterion = maximum(error_vec)
-    while criterion >= threshold
+    count = 0
+    while criterion >= threshold && count < max_iterations
+        count += 1
         # @enter pi, V
         # println("Value iteration criterion ", criterion)
         V_old = copy(V)
@@ -25,13 +28,18 @@ function value_iteration(
         for s = 1:n_states
             pi[s] = idxs[s][2]
         end
-        V = Q[idxs] 
-        error_vec = abs.(V - V_old) ./ (V_old .+ 1e-50)
+        V = Q[idxs]
+        error_vec = get_error_vec(V, V_old)
         criterion = maximum(error_vec)
     end
-    # println("Value iteration finished with criterion ", criterion)
+    println("Value iteration finished with criterion ", criterion, " with gamma ", gamma)
     # removing absorbing state
-    pi[1:n_states-1], V[1:n_states-1]
+    pi[1:n_states-1], V[1:n_states-1], count != max_iterations
+end
+
+function get_error_vec(V::Array{Float64}, V_old::Array{Float64})
+    # abs.(V - V_old) ./ (V_old + 1e-50)
+    abs.(V - V_old)
 end
 
 function generate_transition_matrix(mountaincar::MountainCar, params::Array{Float64})

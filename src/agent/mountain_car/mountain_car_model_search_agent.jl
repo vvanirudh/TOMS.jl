@@ -82,21 +82,27 @@ function bellman_based_model_search(
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_matrices_array, x_array, xnext_array, cost_array = preprocess_data(mountaincar, data)
-
+    x_matrices_array, x_array, xnext_array, disp_array, cost_array = preprocess_data(mountaincar, data)
+    gamma = 1.0
     function eval_fn(p)
-        policy, values = value_iteration(mountaincar, p)
-        bellman_evaluation(
-            mountaincar,
-            p,
-            policy,
-            values,
-            horizon,
-            x_matrices_array,
-            xnext_array,
-            cost_array,
-            10,
-        )
+        policy, values, converged = value_iteration(mountaincar, p; gamma = gamma)
+        if converged
+            return bellman_evaluation(
+                mountaincar,
+                p,
+                policy,
+                values,
+                horizon,
+                x_matrices_array,
+                xnext_array,
+                cost_array,
+                10;
+                gamma = gamma,
+            )
+        else
+            print("Value Iteration did not converge. Skipping parameters ", p)
+            return horizon
+        end
     end
     params = hill_climb(
         eval_fn,

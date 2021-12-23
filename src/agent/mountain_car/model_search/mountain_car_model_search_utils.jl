@@ -154,6 +154,9 @@ function bellman_evaluation(
     position_range = mountaincar.max_position - mountaincar.min_position
     speed_range = 2 * mountaincar.max_speed
     normalization = permutedims([position_range, speed_range])
+    # xs = []
+    # xnexts = []
+    # xprednexts = []
     for i = 1:num_episodes_eval
         x = init(mountaincar, cont = true)
         for t = 1:horizon
@@ -164,7 +167,9 @@ function bellman_evaluation(
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
             xnext = unvec(xnext_array[a][manual_data_index], cont = true)
             xprednext, _ = step(mountaincar, x, action, params)
-            # TODO: Any effect of gamma here? Since values are computing using gamma
+            # push!(xs, x)
+            # push!(xnexts, xnext)
+            # push!(xprednexts, xprednext)
             bellman_error += abs(
                 values[cont_state_to_idx(mountaincar, xnext)] -
                 values[cont_state_to_idx(mountaincar, xprednext)],
@@ -175,6 +180,9 @@ function bellman_evaluation(
             end
         end
     end
+    # if bellman_error == 0.0
+    #     @enter bellman_error, values, xs, xnexts, xprednexts
+    # end
     bellman_error = bellman_error / num_episodes_eval
     println("Bellman error is ", bellman_error)
     println("Bellman evaluation computed as ", model_return + bellman_error)

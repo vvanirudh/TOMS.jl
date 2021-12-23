@@ -19,7 +19,7 @@ function mountaincar_return_based_model_search()
     model = MountainCar(0.0)
     mountaincar = MountainCar(0.03)
     horizon = 500
-    num_episodes_offline = 100
+    num_episodes_offline = 1000
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, num_episodes_offline)
     n_steps = run_return_based_model_search(agent)
     println(n_steps)
