@@ -137,23 +137,31 @@ end
 function bellman_experiment_episodes()
     rock_c = 0.035
     num_episodes = [100, 200, 400, 800, 1000]
-    seeds = [1, 2, 3]
+    seeds = [1, 2, 3, 4, 5]
     n_steps = []
     n_bellman_steps = []
     for episodes in num_episodes
-        return_steps = 0
-        bellman_steps = 0
+        n_sub_steps = []
+        n_bellman_sub_steps = []
         for seed in seeds
             result = bellman_experiment(rock_c, episodes, seed)
-            return_steps += result[1]
-            bellman_steps += result[2]
+            push!(n_sub_steps, result[1])
+            push!(n_bellman_sub_steps, result[2])
         end
-        push!(n_steps, return_steps/length(seeds))
-        push!(n_bellman_steps, bellman_steps/length(seeds))
+        push!(n_steps, n_sub_steps)
+        push!(n_bellman_steps, n_bellman_sub_steps)
     end
+    n_steps = hcat(n_steps...)
+    n_bellman_steps = hcat(n_bellman_steps...)
+    mean_n_steps = mean(n_steps, dims=2)
+    std_n_steps = std(n_steps, dims=2)
+    mean_n_bellman_steps = mean(n_bellman_steps, dims=2)
+    std_n_bellman_steps = std(n_bellman_steps, dims=2)
     println(num_episodes)
-    println(n_steps)
-    println(n_bellman_steps)
+    println("Mean return steps ", mean_n_steps)
+    println("Std return steps ", std_n_steps)
+    println("Mean bellman steps ", mean_n_bellman_steps)
+    println("Std bellman steps ", std_n_bellman_steps)
 end
 
 function bellman_experiment_rock_c()
