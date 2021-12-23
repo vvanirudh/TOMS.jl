@@ -119,12 +119,12 @@ function mountaincar_bellman_based_model_search_main()
     model_search_steps
 end
 
-function bellman_experiment(rock_c::Float64, num_episodes_offline::Int64)
-    Random.seed!(0)
+function bellman_experiment(rock_c::Float64, num_episodes_offline::Int64, seed::Int64)
+    rng = MersenneTwister(seed)
     model = MountainCar(0.0)
     mountaincar = MountainCar(rock_c)
     horizon = 500
-    data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon)
+    data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon, rng = rng)
     println("Generated ", length(data), " transitions")
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
     n_steps = run_return_based_model_search(agent)
@@ -140,7 +140,7 @@ function bellman_experiment_episodes()
     n_steps = []
     n_bellman_steps = []
     for episodes in num_episodes
-        result = bellman_experiment(rock_c, episodes)
+        result = bellman_experiment(rock_c, episodes, 0)
         push!(n_steps, result[1])
         push!(n_bellman_steps, result[2])
     end
@@ -155,7 +155,7 @@ function bellman_experiment_rock_c()
     n_steps = []
     n_bellman_steps = []
     for rock_c in rock_cs
-        result = bellman_experiment(rock_c, num_episodes)
+        result = bellman_experiment(rock_c, num_episodes, 0)
         push!(n_steps, result[1])
         push!(n_bellman_steps, result[2])
     end

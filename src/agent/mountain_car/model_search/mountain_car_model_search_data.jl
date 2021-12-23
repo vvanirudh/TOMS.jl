@@ -4,12 +4,13 @@ function generate_batch_data(
     num_episodes::Int64,
     horizon::Int64;
     policy = nothing,
+    rng = nothing,
 )::Array{MountainCarContTransition}
     data = []
     for episode = 1:num_episodes
-        data = vcat(data, simulate_episode(mountaincar, params, horizon, policy=policy))
+        data = vcat(data, simulate_episode(mountaincar, params, horizon, policy=policy, rng = rng))
     end
-    data = vcat(data, simulate_episode(mountaincar, params, horizon, policy = good_policy(mountaincar)))
+    data = vcat(data, simulate_episode(mountaincar, params, horizon, policy = good_policy(mountaincar), rng = rng))
     data
 end
 
@@ -18,12 +19,13 @@ function simulate_episode(
     params::MountainCarParameters,
     horizon::Int64;
     policy = nothing,
+    rng = nothing,
 )
     episode_data = []
     cont_state = init(mountaincar, cont = true)
     if isnothing(policy)
-        policy = random_policy(mountaincar)
-        cont_state = init(mountaincar, random = true, cont = true)
+        policy = random_policy(mountaincar, rng = rng)
+        cont_state = init(mountaincar, rng = rng, cont = true)
     end
     actions = getActions(mountaincar)
     for t = 1:horizon-1
@@ -44,10 +46,14 @@ function simulate_episode(
     episode_data
 end
 
-function random_policy(mountaincar::MountainCar)
+function random_policy(mountaincar::MountainCar; rng = nothing)
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization
     n_actions = 2
-    rand(1:n_actions, n_states)
+    if isnothing(rng)
+        rand(1:n_actions, n_states)
+    else
+        rand(rng, 1:n_actions, n_states)
+    end
 end
 
 function good_policy(mountaincar::MountainCar)

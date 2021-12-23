@@ -18,8 +18,6 @@ using Distributed
 using GaussianProcesses
 using Optim
 
-Random.seed!(0)
-
 abstract type State end
 abstract type Action end
 abstract type Planner end

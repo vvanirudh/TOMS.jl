@@ -102,11 +102,11 @@ function MountainCar(rock_c::Float64)
     )
 end
 
-function init(mountaincar::MountainCar; random = false, cont = false)
+function init(mountaincar::MountainCar; rng = nothing, cont = false)
     start_state = mountaincar.start_state
-    if random
-        random_position = rand(Uniform(mountaincar.min_position, mountaincar.max_position))
-        random_speed = rand(Uniform(-mountaincar.max_speed, mountaincar.max_speed))
+    if !isnothing(rng)
+        random_position = rand(rng, Uniform(mountaincar.min_position, mountaincar.max_position))
+        random_speed = rand(rng, Uniform(-mountaincar.max_speed, mountaincar.max_speed))
         start_state = MountainCarState(random_position, random_speed)
     end
     if cont
