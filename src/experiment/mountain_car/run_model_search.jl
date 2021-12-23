@@ -137,7 +137,7 @@ end
 function bellman_experiment_episodes()
     rock_c = 0.035
     num_episodes = [100, 200, 400, 800, 1000]
-    seeds = [1, 2, 3, 4, 5]
+    seeds = 1:5
     n_steps = []
     n_bellman_steps = []
     for episodes in num_episodes
