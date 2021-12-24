@@ -24,17 +24,25 @@ function return_based_model_search(
         ensembles = fit_ensembles(x_array, disp_array)
     end
 
-    eval_fn(p) = mfmc_evaluation(
-        mountaincar,
-        value_iteration(mountaincar, p)[1],
-        horizon,
-        x_matrices_array,
-        x_next_array,
-        cost_array,
-        10;
-        ensembles = ensembles,
-        hardcoded = hardcoded,
-    )
+    function eval_fn(p)
+        policy, _, converged = value_iteration(mountaincar, p)
+        if converged
+            return mfmc_evaluation(
+                mountaincar,
+                policy,
+                horizon,
+                x_matrices_array,
+                x_next_array,
+                cost_array,
+                10,
+                ensembles = ensembles,
+                hardcoded = hardcoded,
+            )
+        else
+            println("Value Iteration did not converge. Skipping parameters ", p)
+            return Inf
+        end
+    end
 
     params = hill_climb(
         eval_fn,

@@ -132,7 +132,7 @@ function bellman_evaluation(
     xnext_array::Array{Array{Array{Float64}}},
     cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64;
-    gamma::Float64 = 0.99,
+    gamma::Float64 = 1.0,
 )
     # Evaluate return in the model
     model_return = 0.0
