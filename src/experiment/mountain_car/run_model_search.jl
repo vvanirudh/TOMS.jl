@@ -134,17 +134,40 @@ function bellman_experiment(rock_c::Float64, num_episodes_offline::Int64, seed::
     n_steps, n_bellman_steps
 end
 
+function bellman_experiment(
+    rock_c::Float64,
+    data::Array{MountainCarContTransition},
+)
+    model = MountainCar(0.0)
+    mountaincar = MountainCar(rock_c)
+    horizon = 500
+    agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
+    n_steps = run_return_based_model_search(agent)
+    n_bellman_steps = run_bellman_based_model_search(agent)
+    println("Return ", n_steps)
+    println("Bellman ", n_bellman_steps)
+    n_steps, n_bellman_steps
+end
+
 function bellman_experiment_episodes()
+    horizon = 500
     rock_c = 0.035
     num_episodes = [100, 200, 400, 800, 1000]
     seeds = 1:5
+    experiment_data = get_experiment_data(
+        MountainCar(rock_c),
+        horizon,
+        seeds,
+        num_episodes[end],
+    )
     n_steps = []
     n_bellman_steps = []
     for episodes in num_episodes
         n_sub_steps = []
         n_bellman_sub_steps = []
-        for seed in seeds
-            result = bellman_experiment(rock_c, episodes, seed)
+        for data in experiment_data
+            sliced_data = data[1:episodes*horizon]
+            result = bellman_experiment(rock_c, sliced_data)
             push!(n_sub_steps, result[1])
             push!(n_bellman_sub_steps, result[2])
         end
@@ -179,6 +202,26 @@ function bellman_experiment_rock_c()
     println(num_episodes)
     println(n_steps)
     println(n_bellman_steps)
+end
+
+function get_experiment_data(
+    mountaincar::MountainCar,
+    horizon::Int64,
+    seeds::Array{Int64},
+    max_episodes::Int64,
+)::Array{Array{MountainCarContTransition}}
+    experiment_data = []
+    for seed in seeds
+        rng = MersenneTwister(seed)
+        push!(experiment_data, generate_batch_data(
+            mountaincar,
+            true_params,
+            max_episodes,
+            horizon;
+            rng = rng
+        ))
+    end
+    experiment_data
 end
 
 # PROFILING FUNCTIONS
