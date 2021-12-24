@@ -142,10 +142,8 @@ function bellman_experiment(
     mountaincar = MountainCar(rock_c)
     horizon = 500
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
-    n_steps_remote = @spawnat :any run_return_based_model_search(agent)
-    n_bellman_steps_remote = @spawnat :any run_bellman_based_model_search(agent)
-    n_steps = fetch(n_steps_remote)
-    n_bellman_steps = fetch(n_bellman_steps_remote)
+    n_steps = run_return_based_model_search(agent)
+    n_bellman_steps = run_bellman_based_model_search(agent)
     println("Return ", n_steps)
     println("Bellman ", n_bellman_steps)
     n_steps, n_bellman_steps
