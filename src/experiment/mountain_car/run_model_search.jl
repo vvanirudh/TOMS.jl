@@ -166,7 +166,7 @@ function bellman_experiment_episodes()
         n_sub_steps = []
         n_bellman_sub_steps = []
         for data in experiment_data
-            sliced_data = data[1:episodes*horizon]
+            sliced_data = data[1:min(episodes*horizon, length(data))]
             result = bellman_experiment(rock_c, sliced_data)
             push!(n_sub_steps, result[1])
             push!(n_bellman_sub_steps, result[2])
