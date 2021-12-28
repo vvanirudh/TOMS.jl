@@ -152,8 +152,8 @@ end
 function bellman_experiment_episodes()
     horizon = 500
     rock_c = 0.035
-    num_episodes = [100, 200, 400, 800, 1000]
-    seeds = collect(1:5)
+    num_episodes = [250, 500, 750, 1000, 2000]
+    seeds = collect(1:10)
     experiment_data = get_experiment_data(
         MountainCar(rock_c),
         horizon,
