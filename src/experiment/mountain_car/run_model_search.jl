@@ -151,7 +151,7 @@ end
 
 function bellman_experiment_episodes()
     horizon = 500
-    rock_c = 0.035
+    rock_c = 0.04
     num_episodes = [250, 500, 750, 1000, 2000]
     seeds = collect(1:10)
     experiment_data = get_experiment_data(
