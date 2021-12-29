@@ -29,10 +29,7 @@ function simulate_episode(
     end
     actions = getActions(mountaincar)
     for t = 1:horizon-1
-        disc_state = cont_state_to_disc(mountaincar, cont_state)
-        s = disc_state_to_idx(mountaincar, disc_state)
-        u = policy[s]
-        action = actions[u]
+        action = actions[policy[cont_state_to_idx(mountaincar, cont_state)]]
         cont_state_next, cost = step(mountaincar, cont_state, action, params)
         push!(
             episode_data,

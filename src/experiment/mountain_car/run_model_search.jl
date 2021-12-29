@@ -149,11 +149,12 @@ function bellman_experiment(
     n_steps, n_bellman_steps
 end
 
-function bellman_experiment_episodes()
+function bellman_experiment_episodes(rock_c::Float64)
+    println()
+    println("Experiment with rock_c ", rock_c)
     horizon = 500
-    rock_c = 0.04
-    num_episodes = [250, 500, 750, 1000, 2000]
-    seeds = collect(1:10)
+    num_episodes = [250, 500, 1000, 1500, 2000]
+    seeds = collect(11:15)
     experiment_data = get_experiment_data(
         MountainCar(rock_c),
         horizon,
@@ -176,10 +177,10 @@ function bellman_experiment_episodes()
     end
     n_matrix_steps = hcat(n_steps...)
     n_matrix_bellman_steps = hcat(n_bellman_steps...)
-    mean_n_steps = mean(n_matrix_steps, dims=2)
-    std_n_steps = std(n_matrix_steps, dims=2)
-    mean_n_bellman_steps = mean(n_matrix_bellman_steps, dims=2)
-    std_n_bellman_steps = std(n_matrix_bellman_steps, dims=2)
+    mean_n_steps = mean(n_matrix_steps, dims=1)
+    std_n_steps = std(n_matrix_steps, dims=1)
+    mean_n_bellman_steps = mean(n_matrix_bellman_steps, dims=1)
+    std_n_bellman_steps = std(n_matrix_bellman_steps, dims=1)
     println(num_episodes)
     println("Mean return steps ", mean_n_steps)
     println("Std return steps ", std_n_steps)
@@ -187,6 +188,20 @@ function bellman_experiment_episodes()
     println("Std bellman steps ", std_n_bellman_steps)
     println(n_steps)
     println(n_bellman_steps)
+    n_steps, n_bellman_steps
+end
+
+function all_bellman_experiments()
+    rock_c_values = [0, 0.01, 0.02, 0.03, 0.04]
+    n_return_steps = []
+    n_bellman_steps = []
+    for rock_c in rock_c_values
+        result = bellman_experiment_episodes(rock_c)
+        push!(n_return_steps, result[1])
+        push!(n_bellman_steps, result[2])
+    end
+    println()
+    n_return_steps, n_bellman_steps
 end
 
 function bellman_experiment_rock_c()

@@ -17,12 +17,12 @@ function hill_climb(
     step = copy(optimization_params.initial_step_size)
     inputs = []
     outputs = []
-    println("Evaluating initial params ", optimization_params.initial_params)
+    # println("Evaluating initial params ", optimization_params.initial_params)
     push!(inputs, copy(optimization_params.initial_params))
     push!(outputs, eval_fn(inputs[1]))
     best_params = copy(optimization_params.initial_params)
     if !isnothing(least_squares_params)
-        println("Evaluating least squares params ", least_squares_params)
+        # println("Evaluating least squares params ", least_squares_params)
         push!(inputs, least_squares_params)
         push!(outputs, eval_fn(inputs[2]))
         if outputs[2] < outputs[1]
@@ -62,10 +62,10 @@ function hill_climb(
 
         new_best_params = inputs[argmin(outputs)]
         if new_best_params == best_params
-            println("Decreasing step size at params ", best_params)
+            # println("Decreasing step size at params ", best_params)
             step = step ./ 2
         else
-            println("Moving to params ", new_best_params)
+            # println("Moving to params ", new_best_params)
             best_params = new_best_params
         end
     end
@@ -118,7 +118,7 @@ function mfmc_evaluation(
         end
     end
     avg_return = total_return / num_episodes_eval
-    println("MFMC return computed as ", avg_return)
+    # println("MFMC return computed as ", avg_return)
     return avg_return
 end
 
@@ -147,7 +147,7 @@ function bellman_evaluation(
             break
         end
     end
-    println("Return in model is ", model_return)
+    # println("Return in model is ", model_return)
     # Evaluate bellman error
     bellman_error = 0.0
     x_array_copy = deepcopy(x_array)
@@ -179,8 +179,8 @@ function bellman_evaluation(
         end
     end
     bellman_error = bellman_error / num_episodes_eval
-    println("Bellman error is ", bellman_error)
-    println("Bellman evaluation computed as ", model_return + bellman_error)
+    # println("Bellman error is ", bellman_error)
+    # println("Bellman evaluation computed as ", model_return + bellman_error)
     model_return + bellman_error
 end
 

@@ -146,7 +146,7 @@ function run_return_based_model_search(
     agent::MountainCarModelSearchAgent;
     ensemble = false,
     hardcoded = false,
-    max_steps = 1e5,
+    max_steps = 1e4,
     debug = false,
 )
     params = return_based_model_search(
@@ -162,7 +162,7 @@ end
 
 function run_planner_return_based_model_search(
     agent::MountainCarModelSearchAgent;
-    max_steps = 1e5,
+    max_steps = 1e4,
     debug = false,
 )
     params = planner_return_based_model_search(
@@ -176,7 +176,7 @@ end
 
 function run_bellman_based_model_search(
     agent::MountainCarModelSearchAgent;
-    max_steps = 1e5,
+    max_steps = 1e4,
     debug = false,
 )
     params = bellman_based_model_search(
@@ -191,7 +191,7 @@ end
 function run(
     agent::MountainCarModelSearchAgent,
     params::Array{Float64};
-    max_steps = 1e5,
+    max_steps = 1e4,
     debug = false,
 )
     # planner = MountainCarRTAAPlanner(

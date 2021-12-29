@@ -172,7 +172,7 @@ function step(
     next_slipped_disc_state, cost
 end
 
-function step(
+function step_discrete(
     mountaincar::MountainCar,
     state::MountainCarState,
     action::MountainCarAction,
@@ -196,6 +196,38 @@ function step(
         # Check for rock in discrete grid to ensure that no discretization errors happen
         if sign(disc_state.disc_position - disc_rock_position) !=
            sign(new_disc_position - disc_rock_position)
+            if debug
+                println("Hit rock")
+            end
+            if new_speed > 0
+                slip = max(-mountaincar.rock_c, -new_speed)
+            else
+                slip = min(mountaincar.rock_c, -new_speed)
+            end
+        end
+    end
+
+    slipped_speed = clamp(new_speed + slip, -mountaincar.max_speed, mountaincar.max_speed)
+    @assert abs(slipped_speed) <= abs(new_speed)
+    MountainCarState(new_position, slipped_speed), cost
+end
+
+function step(
+    mountaincar::MountainCar,
+    state::MountainCarState,
+    action::MountainCarAction,
+    params::MountainCarParameters;
+    debug = false,
+)
+    cost = getCost(mountaincar, state)
+    new_position = position_dynamics(mountaincar, state)
+    new_speed = speed_dynamics(mountaincar, state, action, params)
+    slip = 0
+
+    if mountaincar.rock_c > 0
+        # Check for rock in discrete grid to ensure that no discretization errors happen
+        if sign(state.position - mountaincar.rock_position) !=
+           sign(new_position - mountaincar.rock_position)
             if debug
                 println("Hit rock")
             end
