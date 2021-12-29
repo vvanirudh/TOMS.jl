@@ -39,7 +39,7 @@ function return_based_model_search(
                 hardcoded = hardcoded,
             )
         else
-            println("Value Iteration did not converge. Skipping parameters ", p)
+            # println("Value Iteration did not converge. Skipping parameters ", p)
             return Inf
         end
     end
@@ -108,7 +108,7 @@ function bellman_based_model_search(
                 gamma = gamma,
             )
         else
-            println("Value Iteration did not converge. Skipping parameters ", p)
+            # println("Value Iteration did not converge. Skipping parameters ", p)
             return Inf
         end
     end
