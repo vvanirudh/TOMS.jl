@@ -144,8 +144,8 @@ function bellman_experiment(
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
     n_steps = run_return_based_model_search(agent)
     n_bellman_steps = run_bellman_based_model_search(agent)
-    println("Return ", n_steps)
-    println("Bellman ", n_bellman_steps)
+    #println("Return ", n_steps)
+    #println("Bellman ", n_bellman_steps)
     n_steps, n_bellman_steps
 end
 
