@@ -127,7 +127,7 @@ function MountainCarModelSearchAgent(
     num_episodes_offline::Int64,
 )
     data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon)
-    println("Generated ", length(data), " transitions offline")
+    # println("Generated ", length(data), " transitions offline")
     MountainCarModelSearchAgent(mountaincar, model, horizon, data)
 end
 
@@ -215,10 +215,10 @@ function run(
             println(state.position, " ", state.speed, " ", best_action.id)
         end
     end
-    if num_steps < max_steps
-        println("Reached goal in ", num_steps, " steps")
-    else
-        println("Did not reach goal")
-    end
+    # if num_steps < max_steps
+    #     println("Reached goal in ", num_steps, " steps")
+    # else
+    #     println("Did not reach goal")
+    # end
     num_steps
 end
