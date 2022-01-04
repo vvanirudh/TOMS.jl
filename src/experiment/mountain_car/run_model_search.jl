@@ -224,7 +224,7 @@ end
 function get_experiment_data(
     mountaincar::MountainCar,
     horizon::Int64,
-    seeds::Array{Int64},
+    seeds::Array{UInt32},
     max_episodes::Int64,
 )::Array{Array{MountainCarContTransition}}
     experiment_data = []
