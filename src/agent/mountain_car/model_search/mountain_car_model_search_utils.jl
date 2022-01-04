@@ -12,7 +12,8 @@ end
 function hill_climb(
     eval_fn::Function,
     optimization_params::MountainCarOptimizationParameters;
-    least_squares_params::Array{Float64} = nothing,
+    least_squares_params::Array{Float64} = nothing;
+    threshold::Float64 = 1e-6,
 )
     step = copy(optimization_params.initial_step_size)
     inputs = []
@@ -30,7 +31,7 @@ function hill_climb(
         end
     end
 
-    while length(outputs) < optimization_params.maximum_evaluations && maximum(step) > 1e-6
+    while length(outputs) < optimization_params.maximum_evaluations && maximum(step) > threshold
         new_inputs = []
         for i = 1:length(step)
             if optimization_params.only_positive
@@ -164,14 +165,9 @@ function bellman_evaluation(
             xnext = unvec(xnext_array[a][manual_data_index], cont = true)
             xprednext, _ = step(mountaincar, x, action, params)
             # ABSOLUTE MODEL ADVANTAGE
-            # bellman_error += abs(
-            #     values[cont_state_to_idx(mountaincar, xnext)] -
-            #     values[cont_state_to_idx(mountaincar, xprednext)],
-            # )
-            # MODEL ADVANTAGE
-            bellman_error += (
+            bellman_error += abs(
                 values[cont_state_to_idx(mountaincar, xnext)] -
-                values[cont_state_to_idx(mountaincar, xprednext)]
+                values[cont_state_to_idx(mountaincar, xprednext)],
             )
             x = xnext
             if checkGoal(mountaincar, x)

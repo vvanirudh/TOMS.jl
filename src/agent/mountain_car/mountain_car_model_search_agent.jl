@@ -14,7 +14,8 @@ function return_based_model_search(
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
     ensemble::Bool = false,
-    hardcoded::Bool = false,
+    hardcoded::Bool = false;
+    num_episodes_eval::Int64 = 1,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -34,7 +35,7 @@ function return_based_model_search(
                 x_matrices_array,
                 x_next_array,
                 cost_array,
-                10,
+                num_episodes_eval;
                 ensembles = ensembles,
                 hardcoded = hardcoded,
             )
@@ -56,7 +57,8 @@ function planner_return_based_model_search(
     mountaincar::MountainCar,
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
-    horizon::Int64
+    horizon::Int64;
+    num_episodes_eval::Int64 = 10,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -71,7 +73,7 @@ function planner_return_based_model_search(
             x_matrices_array,
             xnext_array,
             cost_array,
-            10,
+            num_episodes_eval,
         )
     end
     params = hill_climb(
@@ -86,7 +88,8 @@ function bellman_based_model_search(
     mountaincar::MountainCar,
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
-    horizon::Int64,
+    horizon::Int64;
+    num_episodes_eval::Int64 = 1,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -104,7 +107,7 @@ function bellman_based_model_search(
                 x_matrices_array,
                 xnext_array,
                 cost_array,
-                10
+                num_episodes_eval,
             )
         else
             println("Value Iteration did not converge. Skipping parameters ", p)
@@ -136,8 +139,9 @@ function MountainCarModelSearchAgent(
     horizon::Int64,
     data::Array{MountainCarContTransition},
 )
+    maximum_num_evaluations = 90
     optimization_params =
-        MountainCarOptimizationParameters([0.0024, 1], [-0.0025, 3], 90, false)
+        MountainCarOptimizationParameters([0.0024, 1], [-0.0025, 3], maximum_num_evaluations, false)
     MountainCarModelSearchAgent(mountaincar, model, data, optimization_params, horizon)
 end
 
