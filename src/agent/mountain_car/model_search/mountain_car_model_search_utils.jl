@@ -12,7 +12,7 @@ end
 function hill_climb(
     eval_fn::Function,
     optimization_params::MountainCarOptimizationParameters;
-    least_squares_params::Array{Float64} = nothing;
+    least_squares_params::Array{Float64} = nothing,
     threshold::Float64 = 1e-6,
 )
     step = copy(optimization_params.initial_step_size)
@@ -69,6 +69,9 @@ function hill_climb(
             println("Moving to params ", new_best_params)
             best_params = new_best_params
         end
+    end
+    if length(outputs) >= optimization_params.maximum_evaluations
+        println("Exhausted maximum number of evaluations")
     end
     inputs[argmin(outputs)]
 end
