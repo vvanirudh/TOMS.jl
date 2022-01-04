@@ -155,7 +155,8 @@ function bellman_experiment_episodes(rock_c::Float64)
     horizon = 500
     # num_episodes = [250, 500, 1000, 1500, 2000]
     num_episodes = [500]
-    seeds = collect(11:15)
+    parent_rng = MersenneTwister(0)
+    seeds = rand(parent_rng, UInt32, 10)
     experiment_data = get_experiment_data(
         MountainCar(rock_c),
         horizon,
