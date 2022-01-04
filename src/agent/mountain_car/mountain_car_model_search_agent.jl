@@ -14,7 +14,7 @@ function return_based_model_search(
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
     ensemble::Bool = false,
-    hardcoded::Bool = false;
+    hardcoded::Bool = false,
     num_episodes_eval::Int64 = 1,
 )
     params = true_params
