@@ -62,10 +62,10 @@ function hill_climb(
 
         new_best_params = inputs[argmin(outputs)]
         if new_best_params == best_params
-            # println("Decreasing step size at params ", best_params)
+            println("Decreasing step size at params ", best_params)
             step = step ./ 2
         else
-            # println("Moving to params ", new_best_params)
+            println("Moving to params ", new_best_params)
             best_params = new_best_params
         end
     end
@@ -83,7 +83,7 @@ function mfmc_evaluation(
     ensembles = nothing,
     hardcoded = false,
     max_inflation = 2.0,
-    scale = 10.0,
+    scale = 2.0,
 )
     x_array_copy = deepcopy(x_array)
     position_range = mountaincar.max_position - mountaincar.min_position
@@ -118,7 +118,7 @@ function mfmc_evaluation(
         end
     end
     avg_return = total_return / num_episodes_eval
-    # println("MFMC return computed as ", avg_return)
+    println("MFMC return computed as ", avg_return)
     return avg_return
 end
 

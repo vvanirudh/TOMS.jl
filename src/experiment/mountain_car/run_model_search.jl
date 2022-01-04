@@ -258,11 +258,11 @@ end
 
 # HARDCODED DISTANCE FUNCTIONS
 function hardcoded_experiment(rock_c::Float64, num_episodes_offline::Int64)
-    Random.seed!(0)
+    rng = MersenneTwister(0)
     model = MountainCar(0.0)
     mountaincar = MountainCar(rock_c)
     horizon = 500
-    data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon)
+    data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon; rng = rng)
     println("Generated ", length(data), " transitions")
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
     n_steps = run_return_based_model_search(agent)

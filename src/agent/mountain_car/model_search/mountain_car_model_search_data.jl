@@ -8,9 +8,9 @@ function generate_batch_data(
 )::Array{MountainCarContTransition}
     data = []
     for episode = 1:num_episodes
-        data = vcat(data, simulate_episode(mountaincar, params, horizon, policy=policy, rng = rng))
+        data = vcat(data, simulate_episode(mountaincar, params, horizon; policy=policy, rng = rng))
     end
-    data = vcat(data, simulate_episode(mountaincar, params, horizon, policy = good_policy(mountaincar), rng = rng))
+    data = vcat(data, simulate_episode(mountaincar, params, horizon; policy = good_policy(mountaincar), rng = rng))
     data
 end
 
@@ -22,13 +22,13 @@ function simulate_episode(
     rng = nothing,
 )
     episode_data = []
-    cont_state = init(mountaincar, cont = true)
+    cont_state = init(mountaincar; cont = true)
     if isnothing(policy)
-        policy = random_policy(mountaincar, rng = rng)
-        cont_state = init(mountaincar, rng = rng, cont = true)
+        policy = random_policy(mountaincar; rng = rng)
+        cont_state = init(mountaincar; rng = rng, cont = true)
     end
     actions = getActions(mountaincar)
-    for t = 1:horizon-1
+    for t = 1:horizon
         action = actions[policy[cont_state_to_idx(mountaincar, cont_state)]]
         cont_state_next, cost = step(mountaincar, cont_state, action, params)
         push!(
