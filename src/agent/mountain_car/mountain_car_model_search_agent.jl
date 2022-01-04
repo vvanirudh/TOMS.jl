@@ -15,7 +15,7 @@ function return_based_model_search(
     horizon::Int64;
     ensemble::Bool = false,
     hardcoded::Bool = false,
-    num_episodes_eval::Int64 = 1,
+    num_episodes_eval::Int64 = 3,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -89,7 +89,7 @@ function bellman_based_model_search(
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
-    num_episodes_eval::Int64 = 1,
+    num_episodes_eval::Int64 = 3,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)

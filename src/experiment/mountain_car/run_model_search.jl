@@ -153,7 +153,8 @@ function bellman_experiment_episodes(rock_c::Float64)
     println()
     println("Experiment with rock_c ", rock_c)
     horizon = 500
-    num_episodes = [250, 500, 1000, 1500, 2000]
+    # num_episodes = [250, 500, 1000, 1500, 2000]
+    num_episodes = [1000]
     seeds = collect(11:15)
     experiment_data = get_experiment_data(
         MountainCar(rock_c),
