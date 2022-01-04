@@ -20,7 +20,7 @@ function simulate_episode(
     horizon::Int64;
     policy = nothing,
     rng = nothing,
-)
+)::Array{MountainCarContTransition}
     episode_data = []
     cont_state = init(mountaincar; cont = true)
     if isnothing(policy)

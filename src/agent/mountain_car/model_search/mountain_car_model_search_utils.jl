@@ -17,12 +17,12 @@ function hill_climb(
     step = copy(optimization_params.initial_step_size)
     inputs = []
     outputs = []
-    # println("Evaluating initial params ", optimization_params.initial_params)
+    println("Evaluating initial params ", optimization_params.initial_params)
     push!(inputs, copy(optimization_params.initial_params))
     push!(outputs, eval_fn(inputs[1]))
     best_params = copy(optimization_params.initial_params)
     if !isnothing(least_squares_params)
-        # println("Evaluating least squares params ", least_squares_params)
+        println("Evaluating least squares params ", least_squares_params)
         push!(inputs, least_squares_params)
         push!(outputs, eval_fn(inputs[2]))
         if outputs[2] < outputs[1]
@@ -131,8 +131,7 @@ function bellman_evaluation(
     x_array::Array{Matrix{Float64}},
     xnext_array::Array{Array{Array{Float64}}},
     cost_array::Array{Array{Float64}},
-    num_episodes_eval::Int64;
-    gamma::Float64 = 1.0,
+    num_episodes_eval::Int64
 )
     # Evaluate return in the model
     model_return = 0.0
@@ -142,12 +141,12 @@ function bellman_evaluation(
         a = policy[cont_state_to_idx(mountaincar, x)]
         action = actions[a]
         x, c = step(mountaincar, x, action, params)
-        model_return += gamma^(t-1) * c
+        model_return += c
         if checkGoal(mountaincar, x)
             break
         end
     end
-    # println("Return in model is ", model_return)
+    println("Return in model is ", model_return)
     # Evaluate bellman error
     bellman_error = 0.0
     x_array_copy = deepcopy(x_array)
@@ -164,14 +163,16 @@ function bellman_evaluation(
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
             xnext = unvec(xnext_array[a][manual_data_index], cont = true)
             xprednext, _ = step(mountaincar, x, action, params)
-            bellman_error += abs(
-                values[cont_state_to_idx(mountaincar, xnext)] -
-                values[cont_state_to_idx(mountaincar, xprednext)],
-            )
-            # bellman_error += (
-            #     values[cont_state_to_idx(mountaincar, xnext)] - 
-            #     values[cont_state_to_idx(mountaincar, xprednext)]
+            # ABSOLUTE MODEL ADVANTAGE
+            # bellman_error += abs(
+            #     values[cont_state_to_idx(mountaincar, xnext)] -
+            #     values[cont_state_to_idx(mountaincar, xprednext)],
             # )
+            # MODEL ADVANTAGE
+            bellman_error += (
+                values[cont_state_to_idx(mountaincar, xnext)] -
+                values[cont_state_to_idx(mountaincar, xprednext)]
+            )
             x = xnext
             if checkGoal(mountaincar, x)
                 break
@@ -179,8 +180,8 @@ function bellman_evaluation(
         end
     end
     bellman_error = bellman_error / num_episodes_eval
-    # println("Bellman error is ", bellman_error)
-    # println("Bellman evaluation computed as ", model_return + bellman_error)
+    println("Bellman error is ", bellman_error)
+    println("Bellman evaluation computed as ", model_return + bellman_error)
     model_return + bellman_error
 end
 

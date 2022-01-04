@@ -104,8 +104,7 @@ function bellman_based_model_search(
                 x_matrices_array,
                 xnext_array,
                 cost_array,
-                10;
-                gamma = gamma,
+                10
             )
         else
             println("Value Iteration did not converge. Skipping parameters ", p)
