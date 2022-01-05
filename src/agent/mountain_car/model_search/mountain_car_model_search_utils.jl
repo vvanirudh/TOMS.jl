@@ -96,7 +96,7 @@ function mfmc_evaluation(
     ensembles = nothing,
     hardcoded::Bool = false,
     max_inflation::Float64 = 2.0,
-    scale::Float64 = 0.1,
+    scale::Float64 = 0.5,
     debug::Bool = false,
 )
     x_array_copy = deepcopy(x_array)
@@ -110,19 +110,19 @@ function mfmc_evaluation(
         for t = 1:horizon
             a = policy[cont_state_to_idx(mountaincar, x)]
             total_return += c
-            manual_data_index =
-                argmin(distance_fn(vec(x), x_array_copy[a], normalization))
+            distances = distance_fn(vec(x), x_array_copy[a], normalization)
+            manual_data_index = argmin(distances)
             x_approx = x_array_copy[a][manual_data_index, :]
             max_distance = 0.0
             if !isnothing(ensembles)
                 predictions = predict_ensemble(ensembles[a], vec(x))
-                max_distance = find_max_distance(predictions)
+                distance = find_max_distance(predictions)
             end
             if hardcoded
-                max_distance = abs(x.position - x_approx[1]) + 10.0 * abs(x.speed - x_approx[2])
+                distance = min(distances)
             end
             # println("Distance is ", max_distance)
-            inflation = min(1 + scale * max_distance, max_inflation)
+            inflation = min(1 + scale * distance, max_inflation)
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
             x = unvec(xnext_array[a][manual_data_index], cont = true)
             c = inflation * cost_array[a][manual_data_index]

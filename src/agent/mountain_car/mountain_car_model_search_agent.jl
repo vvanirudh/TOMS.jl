@@ -208,32 +208,21 @@ function run(
     params::Array{Float64};
     max_steps = 1e4,
     debug = false,
+    eval_distance = false,
 )
-    # planner = MountainCarRTAAPlanner(
-    #     agent.model,
-    #     1000,
-    #     MountainCarParameters(params[1], params[2]),
-    # )
     policy, _, _ = value_iteration(agent.model, params)
     actions = getActions(agent.mountaincar)
-    # generateHeuristic!(planner)
     state = init(agent.mountaincar; cont = true)
     num_steps = 0
+    distances = []
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
         num_steps += 1
         best_action = actions[policy[cont_state_to_idx(agent.mountaincar, state)]]
-        # best_action, info = act(planner, cont_state_to_disc(agent.mountaincar, state))
-        # updateResiduals!(planner, info)
         state, cost =
             step(agent.mountaincar, state, best_action, true_params, debug = debug)
         if debug
             println(state.position, " ", state.speed, " ", best_action.id)
         end
     end
-    # if num_steps < max_steps
-    #     println("Reached goal in ", num_steps, " steps")
-    # else
-    #     println("Did not reach goal")
-    # end
     num_steps
 end
