@@ -267,9 +267,17 @@ function hardcoded_experiment(rock_c::Float64, num_episodes_offline::Int64)
     data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon; rng = rng)
     println("Generated ", length(data), " transitions")
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
-    n_steps = run_return_based_model_search(agent)
-    n_ensemble_steps = run_return_based_model_search(agent; hardcoded=true)
+    n_steps = run_return_based_model_search(agent; debug = false)
+    n_ensemble_steps = run_return_based_model_search(agent; hardcoded=true, debug = false)
     println("Without hardcoded distance ", n_steps)
     println("With hardcoded distance ", n_ensemble_steps)
     n_steps, n_ensemble_steps
 end
+
+function hardcoded_experiment_episodes(rock_c::Float64)
+    num_episodes = [250, 500, 750, 1000]
+    for episodes in num_episodes
+        println("Running with ", episodes, " episodes")
+        hardcoded_experiment(rock_c, episodes)
+    end
+end 

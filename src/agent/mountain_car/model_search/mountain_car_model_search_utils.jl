@@ -96,7 +96,7 @@ function mfmc_evaluation(
     ensembles = nothing,
     hardcoded::Bool = false,
     max_inflation::Float64 = 2.0,
-    scale::Float64 = 2.0,
+    scale::Float64 = 0.1,
     debug::Bool = false,
 )
     x_array_copy = deepcopy(x_array)

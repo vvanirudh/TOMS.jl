@@ -169,8 +169,9 @@ function run_return_based_model_search(
         agent.horizon;
         ensemble = ensemble,
         hardcoded = hardcoded,
+        debug = debug,
     )
-    run(agent, params, max_steps = max_steps, debug = debug)
+    run(agent, params, max_steps = max_steps)
 end
 
 function run_planner_return_based_model_search(
@@ -196,9 +197,10 @@ function run_bellman_based_model_search(
         agent.model,
         agent.data,
         agent.optimization_params,
-        agent.horizon,
+        agent.horizon;
+        debug = debug,
     )
-    run(agent, params, max_steps = max_steps, debug = debug)
+    run(agent, params, max_steps = max_steps)
 end
 
 function run(
