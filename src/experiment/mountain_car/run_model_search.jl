@@ -194,7 +194,7 @@ function bellman_experiment_episodes(rock_c::Float64)
 end
 
 function all_bellman_experiments()
-    rock_c_values = [0, 0.01, 0.02, 0.03, 0.04]
+    rock_c_values = [0, 0.005, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04]
     n_return_steps = []
     n_bellman_steps = []
     for rock_c in rock_c_values
