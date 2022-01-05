@@ -14,16 +14,21 @@ function hill_climb(
     optimization_params::MountainCarOptimizationParameters;
     least_squares_params::Array{Float64} = nothing,
     threshold::Float64 = 1e-6,
+    debug::Bool = false,
 )
     step = copy(optimization_params.initial_step_size)
     inputs = []
     outputs = []
-    println("Evaluating initial params ", optimization_params.initial_params)
+    if debug
+        println("Evaluating initial params ", optimization_params.initial_params)
+    end
     push!(inputs, copy(optimization_params.initial_params))
     push!(outputs, eval_fn(inputs[1]))
     best_params = copy(optimization_params.initial_params)
     if !isnothing(least_squares_params)
-        println("Evaluating least squares params ", least_squares_params)
+        if debug
+            println("Evaluating least squares params ", least_squares_params)
+        end
         push!(inputs, least_squares_params)
         push!(outputs, eval_fn(inputs[2]))
         if outputs[2] < outputs[1]
@@ -63,14 +68,18 @@ function hill_climb(
 
         new_best_params = inputs[argmin(outputs)]
         if new_best_params == best_params
-            println("Decreasing step size at params ", best_params)
+            if debug
+                println("Decreasing step size at params ", best_params)
+            end
             step = step ./ 2
         else
-            println("Moving to params ", new_best_params)
+            if debug
+                println("Moving to params ", new_best_params)
+            end
             best_params = new_best_params
         end
     end
-    if length(outputs) >= optimization_params.maximum_evaluations
+    if length(outputs) >= optimization_params.maximum_evaluations && debug
         println("Exhausted maximum number of evaluations")
     end
     inputs[argmin(outputs)]
@@ -85,9 +94,10 @@ function mfmc_evaluation(
     cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64;
     ensembles = nothing,
-    hardcoded = false,
-    max_inflation = 2.0,
-    scale = 2.0,
+    hardcoded::Bool = false,
+    max_inflation::Float64 = 2.0,
+    scale::Float64 = 2.0,
+    debug::Bool = false,
 )
     x_array_copy = deepcopy(x_array)
     position_range = mountaincar.max_position - mountaincar.min_position
@@ -122,7 +132,9 @@ function mfmc_evaluation(
         end
     end
     avg_return = total_return / num_episodes_eval
-    println("MFMC return computed as ", avg_return)
+    if debug
+        println("MFMC return computed as ", avg_return)
+    end
     return avg_return
 end
 
@@ -135,7 +147,8 @@ function bellman_evaluation(
     x_array::Array{Matrix{Float64}},
     xnext_array::Array{Array{Array{Float64}}},
     cost_array::Array{Array{Float64}},
-    num_episodes_eval::Int64
+    num_episodes_eval::Int64;
+    debug::Bool = false,
 )
     # Evaluate return in the model
     model_return = 0.0
@@ -150,7 +163,9 @@ function bellman_evaluation(
             break
         end
     end
-    println("Return in model is ", model_return)
+    if debug
+        println("Return in model is ", model_return)
+    end
     # Evaluate bellman error
     bellman_error = 0.0
     x_array_copy = deepcopy(x_array)
@@ -179,8 +194,10 @@ function bellman_evaluation(
         end
     end
     bellman_error = bellman_error / num_episodes_eval
-    println("Bellman error is ", bellman_error)
-    println("Bellman evaluation computed as ", model_return + bellman_error)
+    if debug
+        println("Bellman error is ", bellman_error)
+        println("Bellman evaluation computed as ", model_return + bellman_error)
+    end
     model_return + bellman_error
 end
 

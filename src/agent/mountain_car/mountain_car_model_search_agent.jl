@@ -16,6 +16,7 @@ function return_based_model_search(
     ensemble::Bool = false,
     hardcoded::Bool = false,
     num_episodes_eval::Int64 = 3,
+    debug::Bool = false,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -38,17 +39,21 @@ function return_based_model_search(
                 num_episodes_eval;
                 ensembles = ensembles,
                 hardcoded = hardcoded,
+                debug = debug,
             )
         else
-            println("Value Iteration did not converge. Skipping parameters ", p)
+            if debug
+                println("Value Iteration did not converge. Skipping parameters ", p)
+            end
             return Inf
         end
     end
 
     params = hill_climb(
         eval_fn,
-        optimization_params,
+        optimization_params;
         least_squares_params = least_squares_params,
+        debug = debug,
     )
     params
 end
@@ -90,6 +95,7 @@ function bellman_based_model_search(
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
     num_episodes_eval::Int64 = 3,
+    debug::Bool = false,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -107,17 +113,21 @@ function bellman_based_model_search(
                 x_matrices_array,
                 xnext_array,
                 cost_array,
-                num_episodes_eval,
+                num_episodes_eval;
+                debug = debug,
             )
         else
-            println("Value Iteration did not converge. Skipping parameters ", p)
+            if debug
+                println("Value Iteration did not converge. Skipping parameters ", p)
+            end
             return Inf
         end
     end
     params = hill_climb(
         eval_fn,
-        optimization_params,
+        optimization_params;
         least_squares_params = least_squares_params,
+        debug = debug,
     )
     params
 end
