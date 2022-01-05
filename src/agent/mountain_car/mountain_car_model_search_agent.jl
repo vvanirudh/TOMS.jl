@@ -15,7 +15,7 @@ function return_based_model_search(
     horizon::Int64;
     ensemble::Bool = false,
     hardcoded::Bool = false,
-    num_episodes_eval::Int64 = 3,
+    num_episodes_eval::Int64 = 2
     debug::Bool = false,
 )
     params = true_params
@@ -94,7 +94,7 @@ function bellman_based_model_search(
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
-    num_episodes_eval::Int64 = 3,
+    num_episodes_eval::Int64 = 2,
     debug::Bool = false,
 )
     params = true_params
@@ -149,7 +149,7 @@ function MountainCarModelSearchAgent(
     horizon::Int64,
     data::Array{MountainCarContTransition},
 )
-    maximum_num_evaluations = 90
+    maximum_num_evaluations = 120
     optimization_params =
         MountainCarOptimizationParameters([0.0024, 1], [-0.0025, 3], maximum_num_evaluations, false)
     MountainCarModelSearchAgent(mountaincar, model, data, optimization_params, horizon)
