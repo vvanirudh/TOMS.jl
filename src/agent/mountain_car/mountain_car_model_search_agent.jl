@@ -15,7 +15,7 @@ function return_based_model_search(
     horizon::Int64;
     ensemble::Bool = false,
     hardcoded::Bool = false,
-    num_episodes_eval::Int64 = 2
+    num_episodes_eval::Int64 = 2,
     debug::Bool = false,
 )
     params = true_params
