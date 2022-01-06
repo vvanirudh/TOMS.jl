@@ -105,18 +105,22 @@ function mfmc_evaluation(
     speed_range = 2 * mountaincar.max_speed
     normalization = permutedims([position_range, speed_range])
     total_return = 0.0
+    if hardcoded
+        actual_return = 0.0
+    end
     if eval_distance
         eval_distances = []
     end
     for i = 1:num_episodes_eval
         x = init(mountaincar; cont = true)
         c = 1.0
-        if hardcoded
-            actual_c = 1.0
-        end
+        actual_c = 1.0
         for t = 1:horizon
             a = policy[cont_state_to_idx(mountaincar, x)]
             total_return += c
+            if hardcoded
+                actual_return += actual_c
+            end
             distances = distance_fn(vec(x), x_array_copy[a], normalization)
             manual_data_index = argmin(distances)
             distance = 0.0
@@ -126,7 +130,7 @@ function mfmc_evaluation(
             end
             if hardcoded
                 distance = distances[manual_data_index]
-                actual_c += cost_array[a][manual_data_index]
+                actual_c = cost_array[a][manual_data_index]
             end
             inflation = min(1 + scale * distance, max_inflation)
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
@@ -144,7 +148,7 @@ function mfmc_evaluation(
     if debug
         println("MFMC return computed as ", avg_return)
         if hardcoded
-            println("Uninflated MFMC return computed as ", actual_c / num_episodes_eval)
+            println("Uninflated MFMC return computed as ", actual_return / num_episodes_eval)
         end
     end
     if eval_distance
