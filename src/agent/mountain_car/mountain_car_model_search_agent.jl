@@ -15,7 +15,7 @@ function return_based_model_search(
     horizon::Int64;
     ensemble::Bool = false,
     hardcoded::Bool = false,
-    num_episodes_eval::Int64 = 2,
+    num_episodes_eval::Int64 = 1,
     debug::Bool = false,
 )
     params = true_params
@@ -94,7 +94,7 @@ function bellman_based_model_search(
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
-    num_episodes_eval::Int64 = 2,
+    num_episodes_eval::Int64 = 3,
     debug::Bool = false,
 )
     params = true_params
@@ -161,6 +161,7 @@ function run_return_based_model_search(
     hardcoded = false,
     max_steps = 1e4,
     debug = false,
+    eval_distance = false,
 )
     params = return_based_model_search(
         agent.model,
@@ -171,7 +172,7 @@ function run_return_based_model_search(
         hardcoded = hardcoded,
         debug = debug,
     )
-    run(agent, params, max_steps = max_steps)
+    run(agent, params; max_steps = max_steps, eval_distance = eval_distance)
 end
 
 function run_planner_return_based_model_search(
@@ -214,15 +215,34 @@ function run(
     actions = getActions(agent.mountaincar)
     state = init(agent.mountaincar; cont = true)
     num_steps = 0
-    distances = []
+    if eval_distance
+        timestep_distances = []
+        x_matrices_array, _, _, _, _ = preprocess_data(agent.mountaincar,
+                                                       agent.data)
+        position_range = agent.mountaincar.max_position - agent.mountaincar.min_position
+        speed_range = 2 * agent.mountaincar.max_speed
+        normalization = permutedims([position_range, speed_range])
+    end
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
         num_steps += 1
-        best_action = actions[policy[cont_state_to_idx(agent.mountaincar, state)]]
+        a = policy[cont_state_to_idx(agent.mountaincar, state)]
+        best_action = actions[a]
+        if eval_distance
+            distances = distance_fn(vec(state), x_matrices_array[a],
+                                    normalization)
+            push!(timestep_distances, minimum(distances))
+        end
         state, cost =
             step(agent.mountaincar, state, best_action, true_params, debug = debug)
         if debug
             println(state.position, " ", state.speed, " ", best_action.id)
         end
+    end
+    if eval_distance
+        println("Mean distance ", mean(timestep_distances), " Std distance ",
+                std(timestep_distances), " Max distance ",
+                maximum(timestep_distances), " Min distance ",
+                minimum(timestep_distances))
     end
     num_steps
 end

@@ -96,7 +96,7 @@ function mfmc_evaluation(
     ensembles = nothing,
     hardcoded::Bool = false,
     max_inflation::Float64 = 2.0,
-    scale::Float64 = 0.5,
+    scale::Float64 = 1.0,
     debug::Bool = false,
 )
     x_array_copy = deepcopy(x_array)
@@ -113,13 +113,13 @@ function mfmc_evaluation(
             distances = distance_fn(vec(x), x_array_copy[a], normalization)
             manual_data_index = argmin(distances)
             x_approx = x_array_copy[a][manual_data_index, :]
-            max_distance = 0.0
+            distance = 0.0
             if !isnothing(ensembles)
                 predictions = predict_ensemble(ensembles[a], vec(x))
                 distance = find_max_distance(predictions)
             end
             if hardcoded
-                distance = min(distances)
+                distance = distances[manual_data_index]
             end
             # println("Distance is ", max_distance)
             inflation = min(1 + scale * distance, max_inflation)

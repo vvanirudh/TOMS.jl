@@ -259,25 +259,45 @@ function hill_climb_profile()
 end
 
 # HARDCODED DISTANCE FUNCTIONS
-function hardcoded_experiment(rock_c::Float64, num_episodes_offline::Int64)
-    rng = MersenneTwister(0)
+function hardcoded_experiment(rock_c::Float64, num_episodes_offline::Int64;
+                              seed::UInt32 = 0)
+    rng = MersenneTwister(seed)
     model = MountainCar(0.0)
     mountaincar = MountainCar(rock_c)
     horizon = 500
     data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon; rng = rng)
     println("Generated ", length(data), " transitions")
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
-    n_steps = run_return_based_model_search(agent; debug = false)
-    n_ensemble_steps = run_return_based_model_search(agent; hardcoded=true, debug = false)
+    n_steps = run_return_based_model_search(
+        agent; debug = false, eval_distance = true
+    )
+    n_ensemble_steps = run_return_based_model_search(
+        agent; hardcoded=true, debug = false, eval_distance = true
+    )
     println("Without hardcoded distance ", n_steps)
     println("With hardcoded distance ", n_ensemble_steps)
     n_steps, n_ensemble_steps
 end
 
 function hardcoded_experiment_episodes(rock_c::Float64)
-    num_episodes = [250, 500, 750, 1000]
+    # num_episodes = [250, 500, 750, 1000]
+    num_episodes = [10, 25, 50]
     for episodes in num_episodes
         println("Running with ", episodes, " episodes")
         hardcoded_experiment(rock_c, episodes)
     end
-end 
+end
+
+function hardcoded_experiment_seeds(rock_c::Float64, num_episodes::Int64)
+    parent_rng = MersenneTwister(0)
+    seeds = rand(parent_rng, UInt32, 5)
+    # num_episodes = 10
+    n_steps = []
+    n_hardcoded_steps = []
+    for seed in seeds
+        result = hardcoded_experiment(rock_c, num_episodes; seed=seed)
+        push!(n_steps, result[1])
+        push!(n_hardcoded_steps, result[2])
+    end
+    n_steps, n_hardcoded_steps
+end
