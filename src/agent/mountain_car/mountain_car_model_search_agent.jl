@@ -166,7 +166,7 @@ function MountainCarModelSearchAgent(
 )
     maximum_num_evaluations = 120
     optimization_params =
-        MountainCarOptimizationParameters([0.0024, 1], [-0.0025, 3], maximum_num_evaluations, false)
+        MountainCarOptimizationParameters([0.0012, 0.5], [-0.0025, 3], maximum_num_evaluations, false)
     MountainCarModelSearchAgent(mountaincar, model, data, optimization_params, horizon)
 end
 
@@ -174,7 +174,7 @@ function run_return_based_model_search(
     agent::MountainCarModelSearchAgent;
     ensemble = false,
     hardcoded = false,
-    max_steps = 1e4,
+    max_steps = 500,
     debug = false,
     eval_distance = false,
 )
@@ -193,7 +193,7 @@ end
 
 function run_planner_return_based_model_search(
     agent::MountainCarModelSearchAgent;
-    max_steps = 1e4,
+    max_steps = 500,
     debug = false,
 )
     params = planner_return_based_model_search(
@@ -207,7 +207,7 @@ end
 
 function run_bellman_based_model_search(
     agent::MountainCarModelSearchAgent;
-    max_steps = 1e4,
+    max_steps = 500,
     debug = false,
 )
     params = bellman_based_model_search(
