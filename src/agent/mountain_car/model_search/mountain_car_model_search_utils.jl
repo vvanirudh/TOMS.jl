@@ -96,7 +96,7 @@ function mfmc_evaluation(
     ensembles = nothing,
     hardcoded::Bool = false,
     max_inflation::Float64 = 2.0,
-    scale::Float64 = 500.0,
+    scale::Float64 = 100.0,
     debug::Bool = false,
     eval_distance::Bool = false,
 )
@@ -215,5 +215,5 @@ function distance_fn(
     normalization::Matrix{Float64}
 )::Array{Float64}
     x_row = permutedims(x)
-    sum(((x_row .- xs) ./ normalization).^2, dims=2)[:, 1]
+    sum(((x_row .- xs) ./ normalization), dims=2)[:, 1]
 end
