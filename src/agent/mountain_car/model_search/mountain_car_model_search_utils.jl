@@ -111,6 +111,9 @@ function mfmc_evaluation(
     for i = 1:num_episodes_eval
         x = init(mountaincar; cont = true)
         c = 1.0
+        if hardcoded
+            actual_c = 1.0
+        end
         for t = 1:horizon
             a = policy[cont_state_to_idx(mountaincar, x)]
             total_return += c
@@ -123,6 +126,7 @@ function mfmc_evaluation(
             end
             if hardcoded
                 distance = distances[manual_data_index]
+                actual_c += cost_array[a][manual_data_index]
             end
             inflation = min(1 + scale * distance, max_inflation)
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
@@ -139,6 +143,9 @@ function mfmc_evaluation(
     avg_return = total_return / num_episodes_eval
     if debug
         println("MFMC return computed as ", avg_return)
+        if hardcoded
+            println("Uninflated MFMC return computed as ", actual_c / num_episodes_eval)
+        end
     end
     if eval_distance
         return avg_return, eval_distances
