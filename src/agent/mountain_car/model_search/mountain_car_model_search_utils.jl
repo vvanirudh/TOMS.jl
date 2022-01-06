@@ -82,7 +82,7 @@ function hill_climb(
     if length(outputs) >= optimization_params.maximum_evaluations && debug
         println("Exhausted maximum number of evaluations")
     end
-    inputs[argmin(outputs)], min(outputs)
+    inputs[argmin(outputs)]
 end
 
 function mfmc_evaluation(
@@ -141,7 +141,7 @@ function mfmc_evaluation(
         println("MFMC return computed as ", avg_return)
     end
     if eval_distance
-        return eval_distances
+        return avg_return, eval_distances
     end
     avg_return
 end

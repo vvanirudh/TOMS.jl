@@ -50,26 +50,25 @@ function return_based_model_search(
         end
     end
 
-    params, estimated_return = hill_climb(
+    params = hill_climb(
         eval_fn,
         optimization_params;
         least_squares_params = least_squares_params,
         debug = debug,
     )
-    println("Estimated return is ", estimated_return)
     if eval_distance
         policy, _, _ = value_iteration(mountaincar, params)
-        eval_distances = mfmc_evaluation(
+        estimated_return, eval_distances = mfmc_evaluation(
             mountaincar, policy, horizon,
             x_matrices_array, x_next_array, cost_array,
-            num_episodes_eval; ensembles = ensembles,
-            hardcoded = hardcoded, debug = debug,
+            num_episodes_eval;
             eval_distance = eval_distance,
         )
         println("Mean distance ", mean(eval_distances), 
                 " Std distance ", std(eval_distances),
                 " Max distance ", maximum(eval_distances),
                 " Min distance ", minimum(eval_distances))
+        println("Estimated return is ", estimated_return)
     end
     params
 end
@@ -97,7 +96,7 @@ function planner_return_based_model_search(
             num_episodes_eval,
         )
     end
-    params, _ = hill_climb(
+    params = hill_climb(
         eval_fn,
         optimization_params,
         least_squares_params = least_squares_params,
@@ -139,7 +138,7 @@ function bellman_based_model_search(
             return Inf
         end
     end
-    params, _ = hill_climb(
+    params = hill_climb(
         eval_fn,
         optimization_params;
         least_squares_params = least_squares_params,
