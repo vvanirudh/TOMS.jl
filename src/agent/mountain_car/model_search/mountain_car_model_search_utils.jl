@@ -82,7 +82,7 @@ function hill_climb(
     if length(outputs) >= optimization_params.maximum_evaluations && debug
         println("Exhausted maximum number of evaluations")
     end
-    inputs[argmin(outputs)]
+    inputs[argmin(outputs)], min(outputs)
 end
 
 function mfmc_evaluation(

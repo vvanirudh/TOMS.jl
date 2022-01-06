@@ -50,12 +50,13 @@ function return_based_model_search(
         end
     end
 
-    params = hill_climb(
+    params, estimated_return = hill_climb(
         eval_fn,
         optimization_params;
         least_squares_params = least_squares_params,
         debug = debug,
     )
+    println("Estimated return is ", estimated_return)
     if eval_distance
         policy, _, _ = value_iteration(mountaincar, params)
         eval_distances = mfmc_evaluation(
@@ -96,7 +97,7 @@ function planner_return_based_model_search(
             num_episodes_eval,
         )
     end
-    params = hill_climb(
+    params, _ = hill_climb(
         eval_fn,
         optimization_params,
         least_squares_params = least_squares_params,
@@ -138,7 +139,7 @@ function bellman_based_model_search(
             return Inf
         end
     end
-    params = hill_climb(
+    params, _ = hill_climb(
         eval_fn,
         optimization_params;
         least_squares_params = least_squares_params,
@@ -223,7 +224,7 @@ end
 function run(
     agent::MountainCarModelSearchAgent,
     params::Array{Float64};
-    max_steps = 1e4,
+    max_steps = 500,
     debug = false,
 )
     policy, _, _ = value_iteration(agent.model, params)
