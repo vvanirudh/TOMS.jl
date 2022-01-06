@@ -15,8 +15,9 @@ function return_based_model_search(
     horizon::Int64;
     ensemble::Bool = false,
     hardcoded::Bool = false,
-    num_episodes_eval::Int64 = 1,
+    num_episodes_eval::Int64 = 5,
     debug::Bool = false,
+    eval_distance::Bool = false,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -55,6 +56,20 @@ function return_based_model_search(
         least_squares_params = least_squares_params,
         debug = debug,
     )
+    if eval_distance
+        policy, _, _ = value_iteration(mountaincar, params)
+        eval_distances = mfmc_evaluation(
+            mountaincar, policy, horizon,
+            x_matrices_array, x_next_array, cost_array,
+            num_episodes_eval; ensembles = ensembles,
+            hardcoded = hardcoded, debug = debug,
+            eval_distance = eval_distance,
+        )
+        println("Mean distance ", mean(eval_distances), 
+                " Std distance ", std(eval_distances),
+                " Max distance ", maximum(eval_distances),
+                " Min distance ", minimum(eval_distances))
+    end
     params
 end
 
@@ -171,8 +186,9 @@ function run_return_based_model_search(
         ensemble = ensemble,
         hardcoded = hardcoded,
         debug = debug,
+        eval_distance = eval_distance,
     )
-    run(agent, params; max_steps = max_steps, eval_distance = eval_distance)
+    run(agent, params; max_steps = max_steps)
 end
 
 function run_planner_return_based_model_search(
@@ -209,40 +225,20 @@ function run(
     params::Array{Float64};
     max_steps = 1e4,
     debug = false,
-    eval_distance = false,
 )
     policy, _, _ = value_iteration(agent.model, params)
     actions = getActions(agent.mountaincar)
     state = init(agent.mountaincar; cont = true)
     num_steps = 0
-    if eval_distance
-        timestep_distances = []
-        x_matrices_array, _, _, _, _ = preprocess_data(agent.mountaincar,
-                                                       agent.data)
-        position_range = agent.mountaincar.max_position - agent.mountaincar.min_position
-        speed_range = 2 * agent.mountaincar.max_speed
-        normalization = permutedims([position_range, speed_range])
-    end
     while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
         num_steps += 1
         a = policy[cont_state_to_idx(agent.mountaincar, state)]
         best_action = actions[a]
-        if eval_distance
-            distances = distance_fn(vec(state), x_matrices_array[a],
-                                    normalization)
-            push!(timestep_distances, minimum(distances))
-        end
-        state, cost =
+        state, _ =
             step(agent.mountaincar, state, best_action, true_params, debug = debug)
         if debug
             println(state.position, " ", state.speed, " ", best_action.id)
         end
-    end
-    if eval_distance
-        println("Mean distance ", mean(timestep_distances), " Std distance ",
-                std(timestep_distances), " Max distance ",
-                maximum(timestep_distances), " Min distance ",
-                minimum(timestep_distances))
     end
     num_steps
 end

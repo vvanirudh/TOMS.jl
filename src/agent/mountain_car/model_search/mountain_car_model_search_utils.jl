@@ -96,23 +96,26 @@ function mfmc_evaluation(
     ensembles = nothing,
     hardcoded::Bool = false,
     max_inflation::Float64 = 2.0,
-    scale::Float64 = 1.0,
+    scale::Float64 = 1000.0,
     debug::Bool = false,
+    eval_distance::Bool = false,
 )
     x_array_copy = deepcopy(x_array)
     position_range = mountaincar.max_position - mountaincar.min_position
     speed_range = 2 * mountaincar.max_speed
     normalization = permutedims([position_range, speed_range])
     total_return = 0.0
+    if eval_distance
+        eval_distances = []
+    end
     for i = 1:num_episodes_eval
-        x = init(mountaincar, cont = true)
+        x = init(mountaincar; cont = true)
         c = 1.0
         for t = 1:horizon
             a = policy[cont_state_to_idx(mountaincar, x)]
             total_return += c
             distances = distance_fn(vec(x), x_array_copy[a], normalization)
             manual_data_index = argmin(distances)
-            x_approx = x_array_copy[a][manual_data_index, :]
             distance = 0.0
             if !isnothing(ensembles)
                 predictions = predict_ensemble(ensembles[a], vec(x))
@@ -121,7 +124,6 @@ function mfmc_evaluation(
             if hardcoded
                 distance = distances[manual_data_index]
             end
-            # println("Distance is ", max_distance)
             inflation = min(1 + scale * distance, max_inflation)
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
             x = unvec(xnext_array[a][manual_data_index], cont = true)
@@ -129,13 +131,19 @@ function mfmc_evaluation(
             if checkGoal(mountaincar, x)
                 break
             end
+            if eval_distance
+                push!(eval_distances, distances[manual_data_index])
+            end
         end
     end
     avg_return = total_return / num_episodes_eval
     if debug
         println("MFMC return computed as ", avg_return)
     end
-    return avg_return
+    if eval_distance
+        return eval_distances
+    end
+    avg_return
 end
 
 function bellman_evaluation(

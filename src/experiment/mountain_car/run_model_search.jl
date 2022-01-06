@@ -260,7 +260,7 @@ end
 
 # HARDCODED DISTANCE FUNCTIONS
 function hardcoded_experiment(rock_c::Float64, num_episodes_offline::Int64;
-                              seed::UInt32 = 0)
+                              seed = 0)
     rng = MersenneTwister(seed)
     model = MountainCar(0.0)
     mountaincar = MountainCar(rock_c)
