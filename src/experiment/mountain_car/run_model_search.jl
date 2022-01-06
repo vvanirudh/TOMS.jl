@@ -295,6 +295,7 @@ function hardcoded_experiment_seeds(rock_c::Float64, num_episodes::Int64)
     n_steps = []
     n_hardcoded_steps = []
     for seed in seeds
+        println()
         result = hardcoded_experiment(rock_c, num_episodes; seed=seed)
         push!(n_steps, result[1])
         push!(n_hardcoded_steps, result[2])
