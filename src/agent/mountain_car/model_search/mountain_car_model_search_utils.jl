@@ -96,7 +96,7 @@ function mfmc_evaluation(
     ensembles = nothing,
     hardcoded::Bool = false,
     max_inflation::Float64 = 2.0,
-    scale::Float64 = 1000.0,
+    scale::Float64 = 500.0,
     debug::Bool = false,
     eval_distance::Bool = false,
 )
