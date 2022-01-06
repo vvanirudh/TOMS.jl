@@ -215,5 +215,5 @@ function distance_fn(
     normalization::Matrix{Float64}
 )::Array{Float64}
     x_row = permutedims(x)
-    sum(((x_row .- xs) ./ normalization), dims=2)[:, 1]
+    sum(abs.((x_row .- xs) ./ normalization), dims=2)[:, 1]
 end
