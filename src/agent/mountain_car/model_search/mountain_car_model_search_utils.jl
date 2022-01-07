@@ -215,8 +215,7 @@ function bellman_evaluation(
         println("Bellman error is ", bellman_error)
         println("Bellman evaluation computed as ", model_return + bellman_error)
     end
-    # model_return + bellman_error
-    bellman_error
+    model_return + bellman_error
 end
 
 function distance_fn(
