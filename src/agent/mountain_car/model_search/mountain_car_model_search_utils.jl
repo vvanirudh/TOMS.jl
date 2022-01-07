@@ -96,7 +96,7 @@ function mfmc_evaluation(
     num_episodes_eval::Int64;
     hardcoded::Bool = false,
     max_inflation::Float64 = 2.0,
-    scale::Float64 = 50.0,
+    scale::Float64 = 0.1,
     debug::Bool = false,
     eval_distance::Bool = false,
 )
