@@ -8,21 +8,20 @@ function mountaincar_return_based_model_search_main()
         mountaincar = MountainCar(rock_c)
         agent =
             MountainCarModelSearchAgent(mountaincar, model, horizon, num_episodes_offline)
-        n_steps = run_return_based_model_search(agent, max_steps = 1e4)
+        n_steps = run_return_based_model_search(agent; debug = true)
         push!(model_search_steps, n_steps)
     end
     model_search_steps
 end
 
-function mountaincar_return_based_model_search()
+function mountaincar_return_based_model_search(rock_c::Float64, num_episodes_offline::Int64)
     Random.seed!(0)
     model = MountainCar(0.0)
-    mountaincar = MountainCar(0.03)
+    mountaincar = MountainCar(rock_c)
     horizon = 500
-    num_episodes_offline = 1000
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, num_episodes_offline)
-    n_steps = run_return_based_model_search(agent)
-    println(n_steps)
+    n_steps = run_return_based_model_search(agent; debug = true)
+    println("Reached goal in ", n_steps)
 end
 
 # PLANNER FUNCTIONS
