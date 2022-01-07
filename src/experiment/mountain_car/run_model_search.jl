@@ -204,10 +204,10 @@ function hardcoded_experiment(rock_c::Float64, num_episodes_offline::Int64;
     println("Generated ", length(data), " transitions")
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
     n_steps = run_return_based_model_search(
-        agent; debug = true, eval_distance = true
+        agent; debug = false, eval_distance = true
     )
     n_ensemble_steps = run_return_based_model_search(
-        agent; hardcoded=true, debug = true, eval_distance = true
+        agent; hardcoded=true, debug = false, eval_distance = true
     )
     println("Without hardcoded distance ", n_steps)
     println("With hardcoded distance ", n_ensemble_steps)
