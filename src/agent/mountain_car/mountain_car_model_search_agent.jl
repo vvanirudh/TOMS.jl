@@ -51,9 +51,9 @@ function return_based_model_search(
         debug = debug,
     )
     if eval_distance
-        policy, _, _ = value_iteration(mountaincar, params)
+        policy, values, _ = value_iteration(mountaincar, params)
         estimated_return, eval_distances = mfmc_evaluation(
-            mountaincar, policy, horizon,
+            mountaincar, policy, values, horizon,
             x_matrices_array, x_next_array, cost_array,
             num_episodes_eval;
             eval_distance = eval_distance,
