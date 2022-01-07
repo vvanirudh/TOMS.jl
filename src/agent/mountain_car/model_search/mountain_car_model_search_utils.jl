@@ -124,7 +124,7 @@ function mfmc_evaluation(
             if hardcoded
                 actual_return += actual_c
                 distance = distances[manual_data_index]
-                x_approx = unvec(x_array_copy[a][manual_data_index, :]; cont = true)
+                # x_approx = unvec(x_array_copy[a][manual_data_index, :]; cont = true)
                 # distance = abs(
                 #     values[cont_state_to_idx(mountaincar, x)] - 
                 #     values[cont_state_to_idx(mountaincar, x_approx)]
