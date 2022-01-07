@@ -15,11 +15,12 @@ function mountaincar_return_based_model_search_main()
 end
 
 function mountaincar_return_based_model_search(rock_c::Float64, num_episodes_offline::Int64)
-    Random.seed!(0)
+    rng = MersenneTwister(0)
     model = MountainCar(0.0)
     mountaincar = MountainCar(rock_c)
     horizon = 500
-    agent = MountainCarModelSearchAgent(mountaincar, model, horizon, num_episodes_offline)
+    data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon; rng = rng)
+    agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
     n_steps = run_return_based_model_search(agent; debug = true)
     println("Reached goal in ", n_steps)
 end
