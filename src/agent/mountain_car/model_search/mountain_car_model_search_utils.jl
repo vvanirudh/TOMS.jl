@@ -88,6 +88,7 @@ end
 function mfmc_evaluation(
     mountaincar::MountainCar,
     policy::Array{Int64},
+    values::Array{Float64},
     horizon::Int64,
     x_array::Array{Matrix{Float64}},
     xnext_array::Array{Array{Array{Float64}}},
@@ -122,7 +123,12 @@ function mfmc_evaluation(
             distance = 0.0
             if hardcoded
                 actual_return += actual_c
-                distance = distances[manual_data_index]
+                # distance = distances[manual_data_index]
+                x_approx = unvec(x_array_copy[a][manual_data_index, :]; cont = true)
+                distance = abs(
+                    values[cont_state_to_idx(mountaincar, x)] - 
+                    values[cont_state_to_idx(mountaincar, x_approx)]
+                )
                 actual_c = cost_array[a][manual_data_index]
             end
             inflation = min(1 + scale * distance, max_inflation)
@@ -158,7 +164,6 @@ function bellman_evaluation(
     horizon::Int64,
     x_array::Array{Matrix{Float64}},
     xnext_array::Array{Array{Array{Float64}}},
-    cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64;
     debug::Bool = false,
 )

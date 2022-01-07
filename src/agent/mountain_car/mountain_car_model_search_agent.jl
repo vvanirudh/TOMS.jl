@@ -20,14 +20,14 @@ function return_based_model_search(
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_matrices_array, x_array, x_next_array, disp_array, cost_array = preprocess_data(data)
-
+    x_matrices_array, _, x_next_array, _, cost_array = preprocess_data(data)
     function eval_fn(p)
-        policy, _, converged = value_iteration(mountaincar, p)
+        policy, values, converged = value_iteration(mountaincar, p)
         if converged
             return mfmc_evaluation(
                 mountaincar,
                 policy,
+                values,
                 horizon,
                 x_matrices_array,
                 x_next_array,
@@ -77,10 +77,9 @@ function bellman_based_model_search(
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_matrices_array, x_array, xnext_array, disp_array, cost_array = preprocess_data(data)
-    gamma = 1.0
+    x_matrices_array, _, xnext_array, _, _ = preprocess_data(data)
     function eval_fn(p)
-        policy, values, converged = value_iteration(mountaincar, p; gamma = gamma)
+        policy, values, converged = value_iteration(mountaincar, p)
         if converged
             return bellman_evaluation(
                 mountaincar,
@@ -90,7 +89,6 @@ function bellman_based_model_search(
                 horizon,
                 x_matrices_array,
                 xnext_array,
-                cost_array,
                 num_episodes_eval;
                 debug = debug,
             )
