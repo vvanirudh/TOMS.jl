@@ -25,7 +25,8 @@ function simulate_episode(
     cont_state = init(mountaincar; cont = true)
     if isnothing(policy)
         policy = random_policy(mountaincar; rng = rng)
-        cont_state = init(mountaincar; rng = rng, cont = true)
+        # TODO: Need to remove the following line later
+        # cont_state = init(mountaincar; rng = rng, cont = true)
     end
     actions = getActions(mountaincar)
     for t = 1:horizon
