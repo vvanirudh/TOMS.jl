@@ -89,7 +89,7 @@ function bellman_experiment_episodes(rock_c::Float64)
     println("Experiment with rock_c ", rock_c)
     horizon = 500
     # num_episodes = [250, 500, 1000, 1500, 2000]
-    num_episodes = [250, 500, 750, 1000]
+    num_episodes = [5, 10, 20]
     parent_rng = MersenneTwister(0)
     seeds = rand(parent_rng, UInt32, 10)
     experiment_data = get_experiment_data(
