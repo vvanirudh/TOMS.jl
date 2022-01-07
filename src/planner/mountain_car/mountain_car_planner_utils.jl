@@ -37,6 +37,23 @@ function value_iteration(
     pi[1:n_states-1], V[1:n_states-1], count != max_iterations
 end
 
+function value_iteration(
+    mountaincar::MountainCar,
+    params::MountainCarParameters;
+    threshold = 1e-5,
+    gamma = 1.0,
+    max_iterations = 1e3,
+)
+    value_iteration(
+        mountaincar,
+        vec(params);
+        threshold = threshold,
+        gamma = gamma,
+        max_iterations = max_iterations,
+    )
+end
+
+
 function get_error_vec(V::Array{Float64}, V_old::Array{Float64})
     # abs.(V - V_old) ./ (V_old + 1e-50)
     abs.(V - V_old)

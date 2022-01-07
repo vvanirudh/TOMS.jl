@@ -10,7 +10,7 @@ function generate_batch_data(
     for episode = 1:num_episodes
         data = vcat(data, simulate_episode(mountaincar, params, horizon; policy=policy, rng = rng))
     end
-    # data = vcat(data, simulate_episode(mountaincar, params, horizon; policy = good_policy(mountaincar), rng = rng))
+    data = vcat(data, simulate_episode(mountaincar, params, horizon; policy = good_policy(mountaincar), rng = rng))
     data
 end
 
@@ -25,7 +25,7 @@ function simulate_episode(
     cont_state = init(mountaincar; cont = true)
     if isnothing(policy)
         policy = random_policy(mountaincar; rng = rng)        
-        # cont_state = init(mountaincar; rng = rng, cont = true)
+        cont_state = init(mountaincar; rng = rng, cont = true)
     end
     actions = getActions(mountaincar)
     for t = 1:horizon

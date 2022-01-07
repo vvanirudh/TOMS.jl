@@ -42,6 +42,10 @@ function vec(params::MountainCarParameters)::Array{Float64}
     [params.theta1, params.theta2]
 end
 
+function unvec_params(params::Array{Float64})::MountainCarParameters
+    MountainCarParameters(params[1], params[2])
+end
+
 struct MountainCarTransition <: Transition
     initial_state::MountainCarDiscState
     action::MountainCarAction
