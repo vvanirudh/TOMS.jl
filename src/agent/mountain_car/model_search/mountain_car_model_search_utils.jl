@@ -129,6 +129,9 @@ function mfmc_evaluation(
                     values[cont_state_to_idx(mountaincar, x)] - 
                     values[cont_state_to_idx(mountaincar, x_approx)]
                 )
+                if debug
+                    println(distance)
+                end
                 actual_c = cost_array[a][manual_data_index]
             end
             inflation = min(1 + scale * distance, max_inflation)
