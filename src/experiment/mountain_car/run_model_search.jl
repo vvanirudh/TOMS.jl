@@ -54,7 +54,7 @@ function mountaincar_bellman_based_model_search_main(num_episodes_offline::Int64
     model_search_steps
 end
 
-function bellman_experiment(rock_c::Float64, num_episodes_offline::Int64, seed::Int64)
+function bellman_experiment(rock_c::Float64, num_episodes_offline::Int64; seed::Int64 = 0)
     rng = MersenneTwister(seed)
     model = MountainCar(0.0)
     mountaincar = MountainCar(rock_c)
@@ -147,7 +147,7 @@ function bellman_experiment_rock_c()
     n_steps = []
     n_bellman_steps = []
     for rock_c in rock_cs
-        result = bellman_experiment(rock_c, num_episodes, 0)
+        result = bellman_experiment(rock_c, num_episodes; seed = 0)
         push!(n_steps, result[1])
         push!(n_bellman_steps, result[2])
     end
