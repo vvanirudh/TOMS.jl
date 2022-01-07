@@ -62,8 +62,8 @@ function bellman_experiment(rock_c::Float64, num_episodes_offline::Int64; seed::
     data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon, rng = rng)
     println("Generated ", length(data), " transitions")
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
-    n_steps = run_return_based_model_search(agent)
-    n_bellman_steps = run_bellman_based_model_search(agent)
+    n_steps = run_return_based_model_search(agent; debug = true)
+    n_bellman_steps = run_bellman_based_model_search(agent; debug = true)
     println("Return ", n_steps)
     println("Bellman ", n_bellman_steps)
     n_steps, n_bellman_steps
