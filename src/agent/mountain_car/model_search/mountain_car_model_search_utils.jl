@@ -96,7 +96,7 @@ function mfmc_evaluation(
     num_episodes_eval::Int64;
     hardcoded::Bool = false,
     max_inflation::Float64 = 2.0,
-    scale::Float64 = 0.1,
+    scale::Float64 = 50.0,
     debug::Bool = false,
     eval_distance::Bool = false,
 )
@@ -123,12 +123,12 @@ function mfmc_evaluation(
             distance = 0.0
             if hardcoded
                 actual_return += actual_c
-                # distance = distances[manual_data_index]
+                distance = distances[manual_data_index]
                 x_approx = unvec(x_array_copy[a][manual_data_index, :]; cont = true)
-                distance = abs(
-                    values[cont_state_to_idx(mountaincar, x)] - 
-                    values[cont_state_to_idx(mountaincar, x_approx)]
-                )
+                # distance = abs(
+                #     values[cont_state_to_idx(mountaincar, x)] - 
+                #     values[cont_state_to_idx(mountaincar, x_approx)]
+                # )
                 actual_c = cost_array[a][manual_data_index]
             end
             inflation = min(1 + scale * distance, max_inflation)
@@ -215,7 +215,8 @@ function bellman_evaluation(
         println("Bellman error is ", bellman_error)
         println("Bellman evaluation computed as ", model_return + bellman_error)
     end
-    model_return + bellman_error
+    # model_return + bellman_error
+    bellman_error
 end
 
 function distance_fn(
