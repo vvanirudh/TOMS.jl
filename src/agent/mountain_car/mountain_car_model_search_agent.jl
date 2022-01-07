@@ -164,7 +164,7 @@ function MountainCarModelSearchAgent(
     horizon::Int64,
     data::Array{MountainCarContTransition},
 )
-    maximum_num_evaluations = 120
+    maximum_num_evaluations = 90
     optimization_params =
         MountainCarOptimizationParameters([0.0012, 0.5], [-0.0025, 3], maximum_num_evaluations, false)
     MountainCarModelSearchAgent(mountaincar, model, data, optimization_params, horizon)
