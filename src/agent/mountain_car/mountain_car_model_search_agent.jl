@@ -13,7 +13,6 @@ function return_based_model_search(
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
-    ensemble::Bool = false,
     hardcoded::Bool = false,
     num_episodes_eval::Int64 = 1,
     debug::Bool = false,
@@ -21,11 +20,7 @@ function return_based_model_search(
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_matrices_array, x_array, x_next_array, disp_array, cost_array = preprocess_data(mountaincar, data)
-    ensembles = nothing
-    if ensemble
-        ensembles = fit_ensembles(x_array, disp_array)
-    end
+    x_matrices_array, x_array, x_next_array, disp_array, cost_array = preprocess_data(data)
 
     function eval_fn(p)
         policy, _, converged = value_iteration(mountaincar, p)
@@ -38,7 +33,6 @@ function return_based_model_search(
                 x_next_array,
                 cost_array,
                 num_episodes_eval;
-                ensembles = ensembles,
                 hardcoded = hardcoded,
                 debug = debug,
             )
@@ -73,37 +67,6 @@ function return_based_model_search(
     params
 end
 
-function planner_return_based_model_search(
-    mountaincar::MountainCar,
-    data::Array{MountainCarContTransition},
-    optimization_params::MountainCarOptimizationParameters,
-    horizon::Int64;
-    num_episodes_eval::Int64 = 1,
-)
-    params = true_params
-    least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_matrices_array, x_array, xnext_array, disp_array, cost_array = preprocess_data(mountaincar, data)
-
-    function eval_fn(p)
-        policy, _ = rtaa_planning(mountaincar, p)
-        mfmc_evaluation(
-            mountaincar,
-            policy,
-            horizon,
-            x_matrices_array,
-            xnext_array,
-            cost_array,
-            num_episodes_eval,
-        )
-    end
-    params = hill_climb(
-        eval_fn,
-        optimization_params,
-        least_squares_params = least_squares_params,
-    )
-    params
-end
-
 function bellman_based_model_search(
     mountaincar::MountainCar,
     data::Array{MountainCarContTransition},
@@ -114,7 +77,7 @@ function bellman_based_model_search(
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
-    x_matrices_array, x_array, xnext_array, disp_array, cost_array = preprocess_data(mountaincar, data)
+    x_matrices_array, x_array, xnext_array, disp_array, cost_array = preprocess_data(data)
     gamma = 1.0
     function eval_fn(p)
         policy, values, converged = value_iteration(mountaincar, p; gamma = gamma)
@@ -183,26 +146,11 @@ function run_return_based_model_search(
         agent.data,
         agent.optimization_params,
         agent.horizon;
-        ensemble = ensemble,
         hardcoded = hardcoded,
         debug = debug,
         eval_distance = eval_distance,
     )
     run(agent, params; max_steps = max_steps)
-end
-
-function run_planner_return_based_model_search(
-    agent::MountainCarModelSearchAgent;
-    max_steps = 500,
-    debug = false,
-)
-    params = planner_return_based_model_search(
-        agent.model,
-        agent.data,
-        agent.optimization_params,
-        agent.horizon,
-    )
-    run(agent, params, max_steps = max_steps, debug = debug)
 end
 
 function run_bellman_based_model_search(
@@ -235,7 +183,7 @@ function run(
         a = policy[cont_state_to_idx(agent.mountaincar, state)]
         best_action = actions[a]
         state, _ =
-            step(agent.mountaincar, state, best_action, true_params, debug = debug)
+            step(agent.mountaincar, state, best_action, true_params; debug = debug)
         if debug
             println(state.position, " ", state.speed, " ", best_action.id)
         end

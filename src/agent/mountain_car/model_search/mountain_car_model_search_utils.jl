@@ -93,7 +93,6 @@ function mfmc_evaluation(
     xnext_array::Array{Array{Array{Float64}}},
     cost_array::Array{Array{Float64}},
     num_episodes_eval::Int64;
-    ensembles = nothing,
     hardcoded::Bool = false,
     max_inflation::Float64 = 2.0,
     scale::Float64 = 50.0,
@@ -118,23 +117,17 @@ function mfmc_evaluation(
         for t = 1:horizon
             a = policy[cont_state_to_idx(mountaincar, x)]
             total_return += c
-            if hardcoded
-                actual_return += actual_c
-            end
             distances = distance_fn(vec(x), x_array_copy[a], normalization)
             manual_data_index = argmin(distances)
             distance = 0.0
-            if !isnothing(ensembles)
-                predictions = predict_ensemble(ensembles[a], vec(x))
-                distance = find_max_distance(predictions)
-            end
             if hardcoded
+                actual_return += actual_c
                 distance = distances[manual_data_index]
                 actual_c = cost_array[a][manual_data_index]
             end
             inflation = min(1 + scale * distance, max_inflation)
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
-            x = unvec(xnext_array[a][manual_data_index], cont = true)
+            x = unvec(xnext_array[a][manual_data_index]; cont = true)
             c = inflation * cost_array[a][manual_data_index]
             if checkGoal(mountaincar, x)
                 break
@@ -199,7 +192,7 @@ function bellman_evaluation(
             manual_data_index =
                 argmin(distance_fn(vec(x), x_array_copy[a], normalization))
             x_array_copy[a][manual_data_index, :] = [Inf, Inf]
-            xnext = unvec(xnext_array[a][manual_data_index], cont = true)
+            xnext = unvec(xnext_array[a][manual_data_index]; cont = true)
             xprednext, _ = step(mountaincar, x, action, params)
             # ABSOLUTE MODEL ADVANTAGE
             bellman_error += abs(

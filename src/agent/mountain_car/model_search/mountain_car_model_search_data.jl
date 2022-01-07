@@ -57,7 +57,7 @@ function good_policy(mountaincar::MountainCar)
     value_iteration(mountaincar, vec(true_params))[1]
 end
 
-function preprocess_data(mountaincar::MountainCar, data::Array{MountainCarContTransition})
+function preprocess_data(data::Array{MountainCarContTransition})
     n_actions = 2
     x_array::Array{Array{Array{Float64}}} = []
     x_next_array::Array{Array{Array{Float64}}} = []
