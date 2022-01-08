@@ -99,6 +99,7 @@ function compute_model_advantage_loss(
     values::Array{Float64},
     model_params::MountainCarParameters,
 )
+    values = value_iteration(agent.model, model_params)[2]
     loss = 0.0
     for transition in transitions
         predicted_state, _ = step(
