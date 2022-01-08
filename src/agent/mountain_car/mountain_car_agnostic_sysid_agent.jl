@@ -88,7 +88,7 @@ function run(
         # TODO: Doing FTL now, but need to do better
         params = agent.model_class[argmin(losses)]
         # println(vec(params), " ", minimum(losses))
-        println([(agent.model_class[j], losses[j]) for j in 1:length(agent.model_class)])
+        println([(vec(agent.model_class[j]), losses[j]) for j in 1:length(agent.model_class)])
         # Compute corresponding policy and values
         policy, values, _ = value_iteration(agent.model, params)
     end
