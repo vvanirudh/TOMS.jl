@@ -14,7 +14,7 @@ function return_based_model_search(
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
     hardcoded::Bool = false,
-    num_episodes_eval::Int64 = 1,
+    num_episodes_eval::Int64 = 10,
     debug::Bool = false,
     eval_distance::Bool = false,
 )
@@ -72,7 +72,7 @@ function bellman_based_model_search(
     data::Array{MountainCarContTransition},
     optimization_params::MountainCarOptimizationParameters,
     horizon::Int64;
-    num_episodes_eval::Int64 = 1,
+    num_episodes_eval::Int64 = 10,
     debug::Bool = false,
 )
     params = true_params
