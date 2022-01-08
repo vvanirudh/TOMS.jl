@@ -33,7 +33,7 @@ function run(
 )
     rng = MersenneTwister(0)
     # Choose an initial model
-    params = agent.model_class[2]
+    params = true_params
     # Choose an initial policy
     policy, values, _ = value_iteration(agent.model, params)
     # Initialize dataset

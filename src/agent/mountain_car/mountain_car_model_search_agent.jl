@@ -148,6 +148,7 @@ function run_return_based_model_search(
         debug = debug,
         eval_distance = eval_distance,
     )
+    println("Params found is ", params)
     run(agent, params; max_steps = max_steps)
 end
 
