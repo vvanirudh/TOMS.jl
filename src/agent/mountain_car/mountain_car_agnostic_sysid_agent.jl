@@ -39,7 +39,7 @@ function run(
     # Initialize dataset
     all_transitions::Array{Array{MountainCarContTransition}} = []
     # Initialize value functions
-    all_values::Array{Array{Float64}} = []
+    all_values::Array{Array{Float64}} = [value_iteration(agent.model, model_params) for model_params in agent.model_class]
     # Initialize losses
     losses = [0.0 for _ in 1:length(agent.model_class)]
 
@@ -70,14 +70,14 @@ function run(
             all_transitions[i] = vcat(all_transitions[i], episode)
         end
         # Store value function
-        push!(all_values, values)
+        # push!(all_values, values)
         # Collected data, now update model
         for j in 1:length(agent.model_class)
             # Compute loss
             loss = compute_model_advantage_loss(
                 agent,
                 all_transitions[i],
-                all_values[i],
+                all_values[j],
                 agent.model_class[j],
             )
             loss = loss / (m + p)
@@ -87,7 +87,8 @@ function run(
         # Find best model
         # TODO: Doing FTL now, but need to do better
         params = agent.model_class[argmin(losses)]
-        println(vec(params), " ", minimum(losses))
+        # println(vec(params), " ", minimum(losses))
+        println([(agent.model_class[j], losses[j]) for j in 1:length(agent.model_class)])
         # Compute corresponding policy and values
         policy, values, _ = value_iteration(agent.model, params)
     end
@@ -99,7 +100,6 @@ function compute_model_advantage_loss(
     values::Array{Float64},
     model_params::MountainCarParameters,
 )
-    values = value_iteration(agent.model, model_params)[2]
     loss = 0.0
     for transition in transitions
         predicted_state, _ = step(
