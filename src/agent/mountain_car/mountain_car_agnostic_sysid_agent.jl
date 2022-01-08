@@ -30,6 +30,7 @@ end
 function run(
     agent::MountainCarAgnosticSysIDAgent;
     debug = false,
+    value_aware = true,
 )
     rng = MersenneTwister(0)
     # Choose an initial model
@@ -74,12 +75,21 @@ function run(
         # Collected data, now update model
         for j in 1:length(agent.model_class)
             # Compute loss
-            loss = compute_model_advantage_loss(
-                agent,
-                all_transitions[i],
-                all_values[i],
-                agent.model_class[j],
-            )
+            loss = 0.0
+            if value_aware
+                loss = compute_model_advantage_loss(
+                    agent,
+                    all_transitions[i],
+                    all_values[i],
+                    agent.model_class[j],
+                )
+            else
+                loss = compute_l2_loss(
+                    agent,
+                    all_transitions[i],
+                    agent.model_class[j],
+                )
+            end
             loss = loss / (m + p)
             # println(vec(model_params), " ", loss)
             losses[j] += loss
@@ -122,6 +132,24 @@ function compute_model_advantage_loss(
                 )
             ]
         )
+    end
+    loss
+end
+
+function compute_l2_loss(
+    agent::MountainCarAgnosticSysIDAgent,
+    transitions::Array{MountainCarContTransition},
+    model_params::MountainCarParameters,
+)
+    loss = 0.0
+    for transition in transitions
+        predicted_state, _ = step(
+            agent.model,
+            transition.initial_state,
+            transition.action,
+            model_params,
+        )
+        loss += (predicted_state.position - transition.final_state.position)^2 + (predicted_state.speed - transition.final_state.speed)^2
     end
     loss
 end
