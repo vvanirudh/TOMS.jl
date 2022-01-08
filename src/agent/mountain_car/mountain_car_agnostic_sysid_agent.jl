@@ -39,7 +39,7 @@ function run(
     # Initialize dataset
     all_transitions::Array{Array{MountainCarContTransition}} = []
     # Initialize value functions
-    all_values::Array{Array{Float64}} = [value_iteration(agent.model, model_params) for model_params in agent.model_class]
+    all_values::Array{Array{Float64}} = [value_iteration(agent.model, model_params)[2] for model_params in agent.model_class]
     # Initialize losses
     losses = [0.0 for _ in 1:length(agent.model_class)]
 
