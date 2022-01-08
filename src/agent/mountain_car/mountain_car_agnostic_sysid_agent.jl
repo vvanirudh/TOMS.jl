@@ -23,7 +23,7 @@ function generate_model_class()::Array{MountainCarParameters}
     #         push!(models, MountainCarParameters(theta1, theta2))
     #     end
     # end
-    models = [MountainCarParameters(-0.0025, 3), MountainCarParameters(-0.00235, 3.09375)]
+    models = [MountainCarParameters(-0.0025, 3), MountainCarParameters(-0.002640625, 2.93359375)]
     models
 end
 
@@ -39,7 +39,7 @@ function run(
     # Initialize dataset
     all_transitions::Array{Array{MountainCarContTransition}} = []
     # Initialize value functions
-    all_values::Array{Array{Float64}} = [value_iteration(agent.model, model_params)[2] for model_params in agent.model_class]
+    all_values::Array{Array{Float64}} = []
     # Initialize losses
     losses = [0.0 for _ in 1:length(agent.model_class)]
 
@@ -70,14 +70,14 @@ function run(
             all_transitions[i] = vcat(all_transitions[i], episode)
         end
         # Store value function
-        # push!(all_values, values)
+        push!(all_values, values)
         # Collected data, now update model
         for j in 1:length(agent.model_class)
             # Compute loss
             loss = compute_model_advantage_loss(
                 agent,
                 all_transitions[i],
-                all_values[j],
+                all_values[i],
                 agent.model_class[j],
             )
             loss = loss / (m + p)
