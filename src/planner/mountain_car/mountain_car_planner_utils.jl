@@ -2,7 +2,7 @@ function value_iteration(
     mountaincar::MountainCar,
     params::Array{Float64};
     threshold = 1e-5,
-    gamma = 1.0,
+    gamma = 0.99,
     max_iterations = 1e3,
 )
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization + 1
