@@ -26,8 +26,7 @@ function generate_model_class()::Array{Tuple{MountainCar, MountainCarParameters}
     # The second parameter below is good for 0.03 rock_c
     models = [
         (MountainCar(0.0), MountainCarParameters(-0.0025, 3)),
-        (MountainCar(0.0), MountainCarParameters(-0.0027625, 2.953125)),
-        (MountainCar(0.01), MountainCarParameters(-0.0027, 3)),
+        (MountainCar(0.03), MountainCarParameters(-0.003, 3.5)),
     ]
     models
 end
@@ -38,7 +37,6 @@ function run(
     value_aware = true,
 )
     rng = MersenneTwister(0)
-    optimal_policy, _, _ = value_iteration(agent.mountaincar, true_params)
     # Choose an initial model
     model, params = agent.model_class[1]
     # Choose an initial policy
