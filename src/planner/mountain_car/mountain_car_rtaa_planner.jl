@@ -37,8 +37,9 @@ function generateHeuristic!(planner::MountainCarRTAAPlanner; max_steps = 1e4, nu
     else
         println("Generating Heuristic")
         clearHeuristic!(planner)
+        rng = MersenneTwister(0)
         for i = 1:num_runs
-            state = init(planner.mountaincar; random = true)
+            state = init(planner.mountaincar; rng = rng)
             num_steps = 0
             while !checkGoal(planner.mountaincar, state) && num_steps < max_steps
                 num_steps += 1
