@@ -27,7 +27,7 @@ function generate_model_class()::Array{Tuple{MountainCar, MountainCarParameters}
     models = [
         (MountainCar(0.0), MountainCarParameters(-0.0025, 3)),
         (MountainCar(0.0), MountainCarParameters(-0.0027625, 2.953125)),
-        # (MountainCar(0.03), MountainCarParameters(-0.0025, 3)),
+        #(MountainCar(0.03), MountainCarParameters(-0.0025, 3)),
     ]
     models
 end
