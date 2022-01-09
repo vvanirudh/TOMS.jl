@@ -81,3 +81,27 @@ function preprocess_data(data::Array{MountainCarContTransition})
     x_array_matrices = [permutedims(hcat(x_subarray...)) for x_subarray in x_array]
     x_array_matrices, x_array, x_next_array, disp_array, cost_array
 end
+
+function eval_params(
+    mountaincar::MountainCar,
+    model::MountainCar,
+    params::Array{Float64},
+    horizon::Int64;
+    num_eval = 10,
+    rng = nothing,
+)
+    policy, _, _ = value_iteration(model, params)
+    num_steps = 0.0
+    for _ in 1:num_eval
+        num_steps += length(
+            simulate_episode(
+                mountaincar,
+                true_params,
+                horizon;
+                policy = policy,
+                rng = rng,
+            )
+        )
+    end
+    num_steps/num_eval
+end

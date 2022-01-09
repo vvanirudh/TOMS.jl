@@ -39,17 +39,11 @@ end
 
 function value_iteration(
     mountaincar::MountainCar,
-    params::MountainCarParameters;
-    threshold = 1e-5,
-    gamma = 1.0,
-    max_iterations = 1e3,
+    params::MountainCarParameters,
 )
     value_iteration(
         mountaincar,
-        vec(params);
-        threshold = threshold,
-        gamma = gamma,
-        max_iterations = max_iterations,
+        vec(params),
     )
 end
 

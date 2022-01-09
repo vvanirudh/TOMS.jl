@@ -1,7 +1,7 @@
 struct MountainCarAgnosticSysIDAgent
     mountaincar::MountainCar
     model::MountainCar
-    model_class::Array{MountainCarParameters}
+    model_class::Array{Tuple{MountainCar, MountainCarParameters}}
     horizon::Int64
 end
 
@@ -14,7 +14,7 @@ function MountainCarAgnosticSysIDAgent(
     MountainCarAgnosticSysIDAgent(mountaincar, model, model_class, horizon)
 end
 
-function generate_model_class()::Array{MountainCarParameters}
+function generate_model_class()::Array{Tuple{MountainCar, MountainCarParameters}}
     # theta1s = -0.0024:-0.00001:-0.0026
     # theta2s = 2.9:0.01:3.1
     # models = []
@@ -23,7 +23,12 @@ function generate_model_class()::Array{MountainCarParameters}
     #         push!(models, MountainCarParameters(theta1, theta2))
     #     end
     # end
-    models = [MountainCarParameters(-0.0025, 3), MountainCarParameters(-0.002640625, 2.93359375)]
+    # The second parameter below is good for 0.03 rock_c
+    models = [
+        (MountainCar(0.0), MountainCarParameters(-0.0025, 3)),
+        (MountainCar(0.0), MountainCarParameters(-0.0027625, 2.953125)),
+        # (MountainCar(0.03), MountainCarParameters(-0.0025, 3)),
+    ]
     models
 end
 
@@ -33,10 +38,11 @@ function run(
     value_aware = true,
 )
     rng = MersenneTwister(0)
+    optimal_policy, _, _ = value_iteration(agent.mountaincar, true_params)
     # Choose an initial model
-    params = true_params
+    model, params = agent.model_class[1]
     # Choose an initial policy
-    policy, values, _ = value_iteration(agent.model, params)
+    policy, values, _ = value_iteration(model, params)
     # Initialize dataset
     all_transitions::Array{Array{MountainCarContTransition}} = []
     # Initialize value functions
@@ -57,6 +63,7 @@ function run(
                 true_params,
                 agent.horizon;
                 policy = policy,
+                rng = rng,
             )
             all_transitions[i] = vcat(all_transitions[i], episode)
         end
@@ -85,7 +92,6 @@ function run(
                 )
             else
                 loss = compute_l2_loss(
-                    agent,
                     all_transitions[i],
                     agent.model_class[j],
                 )
@@ -96,11 +102,12 @@ function run(
         end
         # Find best model
         # TODO: Doing FTL now, but need to do better
-        params = agent.model_class[argmin(losses)]
+        model, params = agent.model_class[argmin(losses)]
         # println(vec(params), " ", minimum(losses))
-        println([(vec(agent.model_class[j]), losses[j]) for j in 1:length(agent.model_class)])
+        println([(agent.model_class[j][1].rock_c, vec(agent.model_class[j][2]), losses[j]) for j in 1:length(agent.model_class)], "\t", 
+                argmin(losses))
         # Compute corresponding policy and values
-        policy, values, _ = value_iteration(agent.model, params)
+        policy, values, _ = value_iteration(model, params)
     end
 end
 
@@ -108,26 +115,28 @@ function compute_model_advantage_loss(
     agent::MountainCarAgnosticSysIDAgent,
     transitions::Array{MountainCarContTransition},
     values::Array{Float64},
-    model_params::MountainCarParameters,
+    model_params::Tuple{MountainCar, MountainCarParameters},
 )
+    # _, values, _ = value_iteration(agent.mountaincar, true_params)
     loss = 0.0
+    model, params = model_params
     for transition in transitions
         predicted_state, _ = step(
-            agent.model,
+            model,
             transition.initial_state,
             transition.action,
-            model_params,
+            params,
         )
         loss += abs(
             values[
                 cont_state_to_idx(
-                    agent.model,
+                    model,
                     transition.final_state,
                 )
             ] -
             values[
                 cont_state_to_idx(
-                    agent.model,
+                    model,
                     predicted_state,
                 )
             ]
@@ -137,17 +146,17 @@ function compute_model_advantage_loss(
 end
 
 function compute_l2_loss(
-    agent::MountainCarAgnosticSysIDAgent,
     transitions::Array{MountainCarContTransition},
-    model_params::MountainCarParameters,
+    model_params::Tuple{MountainCar, MountainCarParameters},
 )
+    model, params = model_params
     loss = 0.0
     for transition in transitions
         predicted_state, _ = step(
-            agent.model,
+            model,
             transition.initial_state,
             transition.action,
-            model_params,
+            params,
         )
         loss += (predicted_state.position - transition.final_state.position)^2 + (predicted_state.speed - transition.final_state.speed)^2
     end
