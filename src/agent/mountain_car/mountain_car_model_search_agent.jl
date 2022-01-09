@@ -172,20 +172,21 @@ function run(
     params::Array{Float64};
     max_steps = 500,
     debug = false,
+    num_eval = 10,
 )
     policy, _, _ = value_iteration(agent.model, params)
-    actions = getActions(agent.mountaincar)
-    state = init(agent.mountaincar; cont = true)
-    num_steps = 0
-    while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
-        num_steps += 1
-        a = policy[cont_state_to_idx(agent.mountaincar, state)]
-        best_action = actions[a]
-        state, _ =
-            step(agent.mountaincar, state, best_action, true_params; debug = debug)
-        if debug
-            println(state.position, " ", state.speed, " ", best_action.id)
-        end
+    rng = MersenneTwister(0)
+    num_steps = 0.0
+    for _ in 1:num_eval
+        num_steps += length(
+            simulate_episode(
+                agent.mountaincar,
+                true_params,
+                agent.horizon;
+                policy = policy,
+                rng = rng,
+            )
+        )
     end
-    num_steps
+    num_steps/num_eval
 end

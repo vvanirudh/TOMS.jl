@@ -24,13 +24,13 @@ function simulate_episode(
     episode_data = []
     cont_state = init(mountaincar; cont = true)
     if isnothing(policy)
-        policy = random_policy(mountaincar; rng = rng)        
+        policy = random_policy(mountaincar; rng = rng)
         cont_state = init(mountaincar; rng = rng, cont = true)
     end
     actions = getActions(mountaincar)
     for t = 1:horizon
         action = actions[policy[cont_state_to_idx(mountaincar, cont_state)]]
-        cont_state_next, cost = step(mountaincar, cont_state, action, params)
+        cont_state_next, cost = step(mountaincar, cont_state, action, params; rng = rng)
         push!(
             episode_data,
             MountainCarContTransition(cont_state, action, cost, cont_state_next),

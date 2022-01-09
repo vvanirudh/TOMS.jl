@@ -74,7 +74,7 @@ struct MountainCar
     start_state::MountainCarState
     rock_c::Float64
     rock_position::Float64
-    position_sigma::Float64
+    noise::Normal
 end
 
 function MountainCar(rock_c::Float64; position_sigma::Float64 = 0.0)
@@ -90,6 +90,7 @@ function MountainCar(rock_c::Float64; position_sigma::Float64 = 0.0)
     rock_position = 0.25
     position_grid_cell_size = (max_position - min_position) / (position_discretization - 1)
     speed_grid_cell_size = (max_speed * 2) / (speed_discretization - 1)
+    noise = Normal(0.0, position_sigma)
     MountainCar(
         min_position,
         max_position,
@@ -104,7 +105,7 @@ function MountainCar(rock_c::Float64; position_sigma::Float64 = 0.0)
         start_state,
         rock_c,
         rock_position,
-        position_sigma,
+        noise,
     )
 end
 
@@ -139,6 +140,7 @@ function step(
     action::MountainCarAction,
     params::Array{Float64};
     debug = false,
+    rng = nothing,
 )
     step(
         mountaincar,
@@ -146,6 +148,7 @@ function step(
         action,
         MountainCarParameters(params[1], params[2]),
         debug = debug,
+        rng = rng,
     )
 end
 
@@ -155,6 +158,7 @@ function step(
     action::MountainCarAction,
     params::Array{Float64};
     debug = false,
+    rng = nothing,
 )
     step(
         mountaincar,
@@ -162,6 +166,7 @@ function step(
         action,
         MountainCarParameters(params[1], params[2]),
         debug = debug,
+        rng = rng,
     )
 end
 
@@ -171,9 +176,17 @@ function step(
     action::MountainCarAction,
     params::MountainCarParameters;
     debug = false,
+    rng = nothing,
 )
     state = disc_state_to_cont(mountaincar, disc_state)
-    next_slipped_state, cost = step(mountaincar, state, action, params, debug = debug)
+    next_slipped_state, cost = step(
+        mountaincar, 
+        state, 
+        action, 
+        params;
+        debug = debug,
+        rng = rng,
+    )
     next_slipped_disc_state = cont_state_to_disc(mountaincar, next_slipped_state)
     next_slipped_disc_state, cost
 end
@@ -184,9 +197,10 @@ function step_discrete(
     action::MountainCarAction,
     params::MountainCarParameters;
     debug = false,
+    rng = nothing,
 )
     cost = getCost(mountaincar, state)
-    new_position = position_dynamics(mountaincar, state)
+    new_position = position_dynamics(mountaincar, state; rng = rng)
     new_speed = speed_dynamics(mountaincar, state, action, params)
     slip = 0
 
@@ -224,9 +238,10 @@ function step(
     action::MountainCarAction,
     params::MountainCarParameters;
     debug = false,
+    rng = nothing,
 )
     cost = getCost(mountaincar, state)
-    new_position = position_dynamics(mountaincar, state)
+    new_position = position_dynamics(mountaincar, state; rng = rng)
     new_speed = speed_dynamics(mountaincar, state, action, params)
     slip = 0
 
@@ -249,8 +264,15 @@ function step(
     MountainCarState(new_position, slipped_speed), cost
 end
 
-function position_dynamics(mountaincar::MountainCar, state::MountainCarState)
+function position_dynamics(
+    mountaincar::MountainCar, 
+    state::MountainCarState;
+    rng = nothing,
+)
     new_position = state.position + state.speed
+    if !isnothing(rng)
+        new_position += rand(rng, mountaincar.noise)
+    end
     clamp(new_position, mountaincar.min_position, mountaincar.max_position)
 end
 
