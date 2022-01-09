@@ -34,7 +34,7 @@ function mountaincar_bellman_based_model_search(rock_c::Float64, num_episodes_of
     horizon = 500
     data = generate_batch_data(mountaincar, true_params, num_episodes_offline, horizon; rng = rng)
     agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
-    n_steps = run_bellman_based_model_search(agent)
+    n_steps = run_bellman_based_model_search(agent; debug = true)
     println(n_steps)
 end
 
