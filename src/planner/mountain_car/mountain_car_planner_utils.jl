@@ -19,7 +19,6 @@ function value_iteration(
     while criterion >= threshold && count < max_iterations
         count += 1
         # @enter pi, V
-        # println("Value iteration criterion ", criterion)
         V_old = copy(V)
         for a = 1:n_actions
             Q[:, a] = R .+ gamma .* V_old[T[:, a]]
@@ -31,6 +30,7 @@ function value_iteration(
         V = Q[idxs]
         error_vec = get_error_vec(V, V_old)
         criterion = maximum(error_vec)
+        # println("Value iteration criterion ", criterion)
     end
     # println("Value iteration finished with criterion ", criterion, " with gamma ", gamma)
     # removing absorbing state
@@ -48,8 +48,8 @@ function value_iteration(
 end
 
 
-function get_error_vec(V::Array{Float64}, V_old::Array{Float64})
-    # abs.(V - V_old) ./ (V_old + 1e-50)
+function get_error_vec(V::Array{Float64}, V_old::Array{Float64})::Array{Float64}
+    # abs.(V - V_old) ./ (V_old .+ 1e-50)
     abs.(V - V_old)
 end
 
@@ -113,4 +113,30 @@ function iterative_policy_evaluation(
         criterion = maximum(error_vec)
     end
     V[1:n_states-1]
+end
+
+function finite_horizon_value_iteration(
+    mountaincar::MountainCar,
+    params::Array{Float64},
+    horizon::Int64,
+)
+    n_states = mountaincar.position_discretization * mountaincar.speed_discretization + 1
+    n_actions = 2
+    T = generate_transition_matrix(mountaincar, params)
+    R = generate_reward_vector(mountaincar)
+    V = [copy(R) for _ in 1:horizon+1]
+    pi = [zeros(Int64, n_states) for _ in 1:horizon]
+    for t in horizon:-1:1
+        Q = zeros((n_states, n_actions))
+        V_next = V[t+1]
+        for a = 1:n_actions
+            Q[:, a] = R .+ V_next[T[:, a]]
+        end
+        idxs = argmin(Q, dims = 2)
+        for s = 1:n_states
+            pi[t][s] = idxs[s][2]
+        end
+        V[t] = Q[idxs][:, 1]
+    end
+    pi, V
 end

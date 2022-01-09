@@ -105,3 +105,44 @@ function eval_params(
     end
     num_steps/num_eval
 end
+
+function eval_params_bellman(
+    mountaincar::MountainCar,
+    model::MountainCar,
+    params::Array{Float64},
+    horizon::Int64;
+    num_eval = 10,
+    rng = nothing,
+)
+    policy, values, _ = value_iteration(model, params)
+    num_steps = 0.0
+    actions = getActions(mountaincar)
+    for _ in 1:num_eval
+        episode = simulate_episode(
+            mountaincar,
+            true_params,
+            horizon;
+            policy = policy,
+            rng = rng,
+        )
+        model_steps = length(simulate_episode(
+            model,
+            unvec_params(params),
+            horizon;
+            policy = policy,
+            rng = rng,
+        ))
+        println(model_steps, " ", values[cont_state_to_idx(model, init(mountaincar; cont = true))])
+        for transition in episode
+            successor = cont_state_to_idx(model, transition.final_state)
+            action = actions[policy[cont_state_to_idx(model, transition.initial_state)]]
+            predicted_successor = cont_state_to_idx(
+                model, step(model, transition.initial_state, action, params)[1]
+            )
+            model_steps += values[successor] - values[predicted_successor]
+        end
+        model_steps += -values[cont_state_to_idx(model, episode[end].final_state)]
+        num_steps += model_steps
+    end
+    num_steps/num_eval
+end
