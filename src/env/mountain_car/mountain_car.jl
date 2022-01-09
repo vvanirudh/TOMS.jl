@@ -74,9 +74,10 @@ struct MountainCar
     start_state::MountainCarState
     rock_c::Float64
     rock_position::Float64
+    position_sigma::Float64
 end
 
-function MountainCar(rock_c::Float64)
+function MountainCar(rock_c::Float64; position_sigma::Float64 = 0.0)
     start_state = MountainCarState(-π / 6, 0)
     position_discretization = 500 # 150 # 300 # 500
     speed_discretization = 250 # 150 # 500 # 250 # new param
@@ -103,6 +104,7 @@ function MountainCar(rock_c::Float64)
         start_state,
         rock_c,
         rock_position,
+        position_sigma,
     )
 end
 
@@ -229,7 +231,6 @@ function step(
     slip = 0
 
     if mountaincar.rock_c > 0
-        # Check for rock in discrete grid to ensure that no discretization errors happen
         if sign(state.position - mountaincar.rock_position) !=
            sign(new_position - mountaincar.rock_position)
             if debug
