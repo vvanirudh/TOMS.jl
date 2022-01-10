@@ -25,7 +25,7 @@ function WideTreeEnv(n_leaves::Int64, model::String, rng::MersenneTwister)
         right = 3
         # Generate a random permutation of leaves
         leaves = collect(3+1:3+n_leaves)
-        randperm!(rng, leaves)
+        leaves = leaves[randperm(rng, n_leaves)]
         first_bucket = leaves[1:bucket_size]
         second_bucket = leaves[bucket_size+1:2*bucket_size]
         third_bucket = leaves[2*bucket_size+1:3*bucket_size]
