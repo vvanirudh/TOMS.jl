@@ -36,5 +36,8 @@ include("env/mountain_car/mountain_car.jl")
 include("planner/mountain_car/mountain_car_planners.jl")
 include("agent/mountain_car/mountain_car_agents.jl")
 include("experiment/mountain_car/run_all.jl")
-
+# --------- wide tree ------------------
+include("env/wide_tree/wide_tree.jl")
+include("agent/wide_tree/wide_tree_agnostic_sysid_agent.jl")
+include("experiment/wide_tree/run_wide_tree_agnostic_sysid.jl")
 end
