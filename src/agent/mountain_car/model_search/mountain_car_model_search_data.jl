@@ -10,7 +10,7 @@ function generate_batch_data(
     for episode = 1:num_episodes
         data = vcat(data, simulate_episode(mountaincar, params, horizon; policy=policy, rng = rng))
     end
-    # data = vcat(data, simulate_episode(mountaincar, params, horizon; policy = good_policy(mountaincar), rng = rng))
+    data = vcat(data, simulate_episode(mountaincar, params, horizon; policy = good_policy(mountaincar), rng = rng))
     data
 end
 
@@ -78,7 +78,7 @@ function preprocess_data(data::Array{MountainCarContTransition})
         push!(disp_array[a], vec(transition.final_state) - vec(transition.initial_state))
         push!(cost_array[a], transition.cost)
     end
-    x_array_matrices = [permutedims(hcat(x_subarray...)) for x_subarray in x_array]
+    x_array_matrices::Array{Matrix{Float64}} = [permutedims(hcat(x_subarray...)) for x_subarray in x_array]
     x_array_matrices, x_array, x_next_array, disp_array, cost_array
 end
 

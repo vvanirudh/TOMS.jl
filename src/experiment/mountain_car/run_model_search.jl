@@ -237,3 +237,25 @@ function hardcoded_experiment_seeds(rock_c::Float64, num_episodes::Int64)
     end
     n_steps, n_hardcoded_steps
 end
+
+# OPTIMISTIC EXPERIMENTS
+function optimistic_experiment(rock_c::Float64, num_episodes_offline::Int64;
+                               seed = 0)
+    rng = MersenneTwister(seed)
+    model = MountainCar(0.0)
+    mountaincar = MountainCar(rock_c)
+    horizon = 500
+    data = generate_batch_data(mountaincar, true_params, num_episodes_offline,
+                               horizon; rng = rng)
+    println("Generated ", length(data), " transitions")
+    agent = MountainCarModelSearchAgent(mountaincar, model, horizon, data)
+    n_steps = run_return_based_model_search(
+        agent; debug = true,
+    )
+    n_optimistic_steps = run_return_based_model_search(
+        agent; debug = true, optimistic = true,
+    )
+    println("Without optimism ", n_steps)
+    println("With optimism ", n_optimistic_steps)
+    n_steps, n_optimistic_steps
+end
