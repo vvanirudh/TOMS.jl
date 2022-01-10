@@ -84,16 +84,13 @@ function simulate_episode(
     state = init(widetree)
     transitions::Array{Tuple{Int64, Int64, Int64, Int64}} = []
     total_return = 0
-    # first step
-    action = policy[state]
-    next_state, cost = step(widetree, state, action, rng)
-    push!(transitions, (state, action, cost, next_state))
-    total_return += cost
-    # second step
-    action = policy[next_state]
-    final_state, cost = step(widetree, next_state, action, rng)
-    push!(transitions, (next_state, action, cost, final_state))
-    total_return += cost
+    while !checkTerminal(widetree, state)
+        action = policy[state]
+        next_state, cost = step(widetree, state, action, rng)
+        push!(transitions, (state, action, cost, next_state))
+        total_return += cost
+        state = next_state
+    end
 
     transitions, total_return
 end
