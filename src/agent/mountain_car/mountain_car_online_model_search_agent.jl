@@ -7,7 +7,7 @@ end
 function run(
     agent::MountainCarOnlineModelSearchAgent,
     rng::MersenneTwister;
-    max_steps = 3e3,
+    max_steps = 5e3,
     debug = false,
     max_likelihood = false,
     optimistic = false,
@@ -27,7 +27,7 @@ function run(
         action = actions[policy[cont_state_to_idx(agent.mountaincar, state)]]
         if toss < epsilon
             # random action
-            action = actions[rand(rng, [0, 1])]
+            action = actions[rand(rng, [1, 2])]
         end
         next_state, cost = step(agent.mountaincar, state, action, true_params)
         push!(data, MountainCarContTransition(state, action, cost, next_state))
@@ -62,7 +62,7 @@ end
 function run_cmax(
     agent::MountainCarOnlineModelSearchAgent,
     rng::MersenneTwister;
-    max_steps = 1e4,
+    max_steps = 5e3,
     debug = false,
     cmax_threshold = 0.01,
 )
@@ -88,6 +88,25 @@ function run_cmax(
             policy, _, _ = value_iteration(agent.model, transition_matrix, cost_matrix)
         end
         state = next_state
+    end
+    num_steps
+end
+
+function run_true(
+    agent::MountainCarOnlineModelSearchAgent,
+    rng::MersenneTwister;
+    max_steps = 5e3,
+    debug = false,
+)
+    start_params = true_params
+    policy, _, _ = value_iteration(agent.mountaincar, vec(start_params))
+    num_steps = 0.0
+    state = init_random(agent.mountaincar, rng)
+    actions = getActions(agent.mountaincar)
+    while !checkGoal(agent.mountaincar, state) && num_steps < max_steps
+        num_steps += 1
+        action = actions[policy[cont_state_to_idx(agent.mountaincar, state)]]
+        state, cost = step(agent.mountaincar, state, action, true_params)
     end
     num_steps
 end
