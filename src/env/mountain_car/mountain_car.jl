@@ -79,8 +79,8 @@ end
 
 function MountainCar(rock_c::Float64; position_sigma::Float64 = 0.0)
     start_state = MountainCarState(-π / 6, 0)
-    position_discretization = 1000 # 150 # 300 # 500
-    speed_discretization = 500 # 150 # 500 # 250 # new param
+    position_discretization = 150 # 300 # 500
+    speed_discretization = 150 # 500 # 250 # new param
     min_position = -1.2
     max_position = 0.5 # 0.6
     max_speed = 0.07  # 0.2
@@ -120,6 +120,12 @@ function init(mountaincar::MountainCar; rng = nothing, cont = false)
         return start_state
     end
     cont_state_to_disc(mountaincar, start_state)
+end
+
+function init_random(mountaincar::MountainCar, rng::MersenneTwister)
+    start_state = mountaincar.start_state
+    noise = rand(rng, Uniform(-0.1, 0.1))
+    MountainCarState(start_state.position + noise, start_state.speed)
 end
 
 function getActions(mountaincar::MountainCar)

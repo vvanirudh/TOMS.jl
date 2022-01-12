@@ -4,6 +4,7 @@ include("run_cmax.jl")
 include("run_finite_model_class.jl")
 include("run_model_search.jl")
 include("run_agnostic_sysid.jl")
+include("run_online_model_search.jl")
 
 function mountaincar_all_main()
     rtaa_steps = mountaincar_rtaa_main()

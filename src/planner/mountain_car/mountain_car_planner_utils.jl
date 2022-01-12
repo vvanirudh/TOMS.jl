@@ -5,11 +5,29 @@ function value_iteration(
     gamma = 1.0,
     max_iterations = 1e3,
 )
+    T = generate_transition_matrix(mountaincar, params)
+    R = generate_cost_vector(mountaincar)
+    value_iteration(
+        mountaincar,
+        T,
+        R;
+        threshold = threshold,
+        gamma = gamma,
+        max_iterations = max_iterations,
+    )
+end
+
+function value_iteration(
+    mountaincar::MountainCar,
+    transition_matrix::Matrix{Int64},
+    cost_vector::Vector{Float64};
+    threshold = 1e-5,
+    gamma = 1.0,
+    max_iterations = 1e3,
+)
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization + 1
     n_actions = 2
-    T = generate_transition_matrix(mountaincar, params)
-    R = generate_reward_vector(mountaincar)
-    V_old = copy(R)
+    V_old = copy(cost_vector)
     pi = zeros(Int64, n_states)
     V = 2 * V_old
     Q = zeros((n_states, n_actions))
@@ -18,10 +36,9 @@ function value_iteration(
     count = 0
     while criterion >= threshold && count < max_iterations
         count += 1
-        # @enter pi, V
         V_old = copy(V)
         for a = 1:n_actions
-            Q[:, a] = R .+ gamma .* V_old[T[:, a]]
+            Q[:, a] = cost_vector .+ gamma .* V_old[transition_matrix[:, a]]
         end
         idxs = argmin(Q, dims = 2)
         for s = 1:n_states
@@ -30,9 +47,42 @@ function value_iteration(
         V = Q[idxs]
         error_vec = get_error_vec(V, V_old)
         criterion = maximum(error_vec)
-        # println("Value iteration criterion ", criterion)
     end
-    # println("Value iteration finished with criterion ", criterion, " with gamma ", gamma)
+    # removing absorbing state
+    pi[1:n_states-1], V[1:n_states-1], count != max_iterations
+end
+
+function value_iteration(
+    mountaincar::MountainCar,
+    transition_matrix::Matrix{Int64},
+    cost_matrix::Matrix{Float64};
+    threshold = 1e-5,
+    gamma = 1.0,
+    max_iterations = 1e3,
+)
+    n_states = mountaincar.position_discretization * mountaincar.speed_discretization + 1
+    n_actions = 2
+    V_old = minimum(cost_matrix, dims=2)
+    pi = zeros(Int64, n_states)
+    V = 2 * V_old
+    Q = zeros((n_states, n_actions))
+    error_vec = get_error_vec(V, V_old)
+    criterion = maximum(error_vec)
+    count = 0
+    while criterion >= threshold && count < max_iterations
+        count += 1
+        V_old = copy(V)
+        for a = 1:n_actions
+            Q[:, a] = cost_matrix[:, a] .+ gamma .* V_old[transition_matrix[:, a]]
+        end
+        idxs = argmin(Q, dims = 2)
+        for s = 1:n_states
+            pi[s] = idxs[s][2]
+        end
+        V = Q[idxs]
+        error_vec = get_error_vec(V, V_old)
+        criterion = maximum(error_vec)
+    end
     # removing absorbing state
     pi[1:n_states-1], V[1:n_states-1], count != max_iterations
 end
@@ -77,13 +127,28 @@ function generate_transition_matrix(mountaincar::MountainCar, params::Array{Floa
     T
 end
 
-function generate_reward_vector(mountaincar::MountainCar)
+function generate_cost_vector(mountaincar::MountainCar)
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization + 1
     R = zeros(n_states)
     for s = 1:n_states-1
         R[s] = getCost(mountaincar, idx_to_disc_state(mountaincar, s))
     end
     R[n_states] = 0
+    R
+end
+
+function generate_cost_matrix(mountaincar::MountainCar)
+    n_states = mountaincar.position_discretization *
+        mountaincar.speed_discretization + 1
+    n_actions = 2
+    R = zeros(n_states, n_actions)
+    for s = 1:n_states-1
+        for a = 1:n_actions
+            R[s, a] = getCost(mountaincar, idx_to_disc_state(mountaincar, s))
+        end
+    end
+    R[n_states, 1] = 0
+    R[n_states, 2] = 0
     R
 end
 
@@ -97,7 +162,7 @@ function iterative_policy_evaluation(
 )
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization + 1
     T = generate_transition_matrix(mountaincar, params)
-    R = generate_reward_vector(mountaincar)
+    R = generate_cost_vector(mountaincar)
     V_old = copy(R)
     V = 2 * V_old
     error_vec = get_error_vec(V, V_old)
@@ -123,7 +188,7 @@ function finite_horizon_value_iteration(
     n_states = mountaincar.position_discretization * mountaincar.speed_discretization + 1
     n_actions = 2
     T = generate_transition_matrix(mountaincar, params)
-    R = generate_reward_vector(mountaincar)
+    R = generate_cost_vector(mountaincar)
     V = [copy(R) for _ in 1:horizon+1]
     pi = [zeros(Int64, n_states) for _ in 1:horizon]
     for t in horizon:-1:1

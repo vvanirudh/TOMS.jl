@@ -156,6 +156,57 @@ function mfmc_evaluation(
     avg_return
 end
 
+function mfmc_optimistic_evaluation(
+    mountaincar::MountainCar,
+    policy::Array{Int64},
+    params::Array{Float64},
+    horizon::Int64,
+    x_array::Array{Matrix{Float64}},
+    xnext_array::Array{Array{Array{Float64}}},
+    cost_array::Array{Array{Float64}},
+    num_episodes_eval::Int64,
+    distance_threshold::Float64;
+    debug::Bool = false,
+)
+    x_array_copy = deepcopy(x_array)
+    position_range = mountaincar.max_position - mountaincar.min_position
+    speed_range = 2 * mountaincar.max_speed
+    normalization = permutedims([position_range, speed_range])
+    total_return = 0.0
+    actions = getActions(mountaincar)
+    for i=1:num_episodes_eval
+        x = init(mountaincar; cont=true)
+        c = 1.0
+        for t = 1:horizon
+            a = policy[cont_state_to_idx(mountaincar, x)]
+            total_return += c
+            closest_distance = Inf
+            if length(x_array_copy[a]) != 0
+                distances = distance_fn(vec(x), x_array_copy[a], normalization)
+                manual_data_index = argmin(distances)
+                closest_distance = distances[manual_data_index]
+            end
+            if closest_distance < distance_threshold
+                # Use the data point
+                x_array_copy[a][manual_data_index, :] = [Inf, Inf]
+                x = unvec(xnext_array[a][manual_data_index]; cont = true)
+                c = cost_array[a][manual_data_index]
+            else
+                # Use optimistic model
+                x, c = step(mountaincar, x, actions[a], true_params)
+            end
+            if checkGoal(mountaincar, x)
+                break
+            end
+        end
+    end
+    avg_return = total_return/num_episodes_eval
+    if debug
+        println("MFMC Optimistic return computed as ", avg_return)
+    end
+    avg_return
+end
+
 function bellman_evaluation(
     mountaincar::MountainCar,
     params::Array{Float64},
@@ -224,5 +275,6 @@ function distance_fn(
     normalization::Matrix{Float64}
 )::Array{Float64}
     x_row = permutedims(x)
+    # println(x_row, xs, normalization)
     sum(abs.((x_row .- xs) ./ normalization), dims=2)[:, 1]
 end
