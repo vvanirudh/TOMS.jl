@@ -45,7 +45,7 @@ function mountaincar_run_online_experiments()
     cmax_steps = []
     true_steps = []
     rbms_steps = []
-    rock_c_values = collect(0.02:0.002:0.03)
+    rock_c_values = collect(0.02:0.001:0.03)
     for rock_c in rock_c_values
         ml_sub_steps = []
         oms_sub_steps = []
@@ -53,24 +53,24 @@ function mountaincar_run_online_experiments()
         true_sub_steps = []
         rbms_sub_steps = []
         for seed in seeds
-            # println("MLE with rock_c ", rock_c, " seed ", seed)
-            # push!(ml_sub_steps, mountaincar_run_online_model_search(
-            #     rock_c, num_eval_samples; max_likelihood = true, seed = seed,
-            #     debug = false,
-            # ))
-            # println("OMS with rock_c ", rock_c, " seed ", seed)
-            # push!(oms_sub_steps, mountaincar_run_online_model_search(
-            #     rock_c, num_eval_samples; optimistic = true, seed = seed,
-            #     debug = false,
-            # ))
-            # println("CMAX with rock_c ", rock_c, " seed ", seed)
-            # push!(cmax_sub_steps, mountaincar_run_cmax(
-            #     rock_c; seed = seed, debug = false,
-            # ))
-            # println("True with rock_c ", rock_c, " seed ", seed)
-            # push!(true_sub_steps, mountaincar_run_true(
-            #     rock_c; seed = seed, debug = false,
-            # ))
+            println("MLE with rock_c ", rock_c, " seed ", seed)
+            push!(ml_sub_steps, mountaincar_run_online_model_search(
+                rock_c, num_eval_samples; max_likelihood = true, seed = seed,
+                debug = false,
+            ))
+            println("OMS with rock_c ", rock_c, " seed ", seed)
+            push!(oms_sub_steps, mountaincar_run_online_model_search(
+                rock_c, num_eval_samples; optimistic = true, seed = seed,
+                debug = false,
+            ))
+            println("CMAX with rock_c ", rock_c, " seed ", seed)
+            push!(cmax_sub_steps, mountaincar_run_cmax(
+                rock_c; seed = seed, debug = false,
+            ))
+            println("True with rock_c ", rock_c, " seed ", seed)
+            push!(true_sub_steps, mountaincar_run_true(
+                rock_c; seed = seed, debug = false,
+            ))
             println("RBMS with rock_ ", rock_c, " seed ", seed)
             push!(rbms_sub_steps, mountaincar_run_online_model_search(
                 rock_c, num_eval_samples; optimistic = false, seed = seed,
@@ -83,58 +83,60 @@ function mountaincar_run_online_experiments()
         push!(true_steps, true_sub_steps)
         push!(rbms_steps, rbms_sub_steps)
     end
-    # ml_mean_steps = [mean(x) for x in ml_steps]
-    # ml_std_steps = [std(x) for x in ml_steps] ./ sqrt(length(seeds))
-    # oms_mean_steps = [mean(x) for x in oms_steps]
-    # oms_std_steps = [std(x) for x in oms_steps] ./ sqrt(length(seeds))
-    # cmax_mean_steps = [mean(x) for x in cmax_steps]
-    # cmax_std_steps = [std(x) for x in cmax_steps] ./ sqrt(length(seeds))
-    # true_mean_steps = [mean(x) for x in true_steps]
-    # true_std_steps = [std(x) for x in true_steps] ./ sqrt(length(seeds))
+    ml_mean_steps = [mean(x) for x in ml_steps]
+    ml_std_steps = [std(x) for x in ml_steps] ./ sqrt(length(seeds))
+    oms_mean_steps = [mean(x) for x in oms_steps]
+    oms_std_steps = [std(x) for x in oms_steps] ./ sqrt(length(seeds))
+    cmax_mean_steps = [mean(x) for x in cmax_steps]
+    cmax_std_steps = [std(x) for x in cmax_steps] ./ sqrt(length(seeds))
+    true_mean_steps = [mean(x) for x in true_steps]
+    true_std_steps = [std(x) for x in true_steps] ./ sqrt(length(seeds))
     rbms_mean_steps = [mean(x) for x in rbms_steps]
     rbms_std_steps = [std(x) for x in rbms_steps] ./ sqrt(length(seeds))
 
-    # println("MLE")
-    # println(ml_steps)
-    # println("OMS")
-    # println(oms_steps)
-    # println("CMAX")
-    # println(cmax_steps)
-    # println("TRUE")
-    # println(true_steps)
+    println("MLE")
+    println(ml_steps)
+    println("OMS")
+    println(oms_steps)
+    println("CMAX")
+    println(cmax_steps)
+    println("TRUE")
+    println(true_steps)
     println("RBMS")
     println(rbms_steps)
 
-    # println("MLE")
-    # println(ml_mean_steps)
-    # println("OMS")
-    # println(oms_mean_steps)
-    # println("CMAX")
-    # println(cmax_mean_steps)
-    # println("TRUE")
-    # println(true_mean_steps)
+    println("MLE")
+    println(ml_mean_steps)
+    println("OMS")
+    println(oms_mean_steps)
+    println("CMAX")
+    println(cmax_mean_steps)
+    println("TRUE")
+    println(true_mean_steps)
     println("RBMS")
     println(rbms_mean_steps)
 
-    # println("MLE")
-    # println(ml_std_steps)
-    # println("OMS")
-    # println(oms_std_steps)
-    # println("CMAX")
-    # println(cmax_std_steps)
-    # println("TRUE")
-    # println(true_std_steps)
+    println("MLE")
+    println(ml_std_steps)
+    println("OMS")
+    println(oms_std_steps)
+    println("CMAX")
+    println(cmax_std_steps)
+    println("TRUE")
+    println(true_std_steps)
     println("RBMS")
     println(rbms_std_steps)
 
     # plot(rock_c_values, ml_mean_steps, grid=true, yerror=ml_std_steps, lw=3,
     #      label="MLE")
     # plot!(rock_c_values, oms_mean_steps, grid=true, yerror=oms_std_steps, lw=3,
-    #      label="OMS")
+    #      label="TOMS")
     # plot!(rock_c_values, cmax_mean_steps, grid=true, yerror=cmax_std_steps, lw=3,
     #       label="CMAX")
     # plot!(rock_c_values, true_mean_steps, grid=true, yerror=true_std_steps, lw=3,
     #      label="TRUE")
+    # plot!(rock_c_values, rbms_mean_steps, grid=true, yerror=rbms_std_steps, lw=3,
+    #      label="RBMS")
     # xlabel!("Misspecification")
     # ylabel!("Number of steps to reach goal")
 end
