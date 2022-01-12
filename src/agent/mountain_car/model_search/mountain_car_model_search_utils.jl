@@ -118,8 +118,14 @@ function mfmc_evaluation(
         for t = 1:horizon
             a = policy[cont_state_to_idx(mountaincar, x)]
             total_return += c
-            distances = distance_fn(vec(x), x_array_copy[a], normalization)
-            manual_data_index = argmin(distances)
+            manual_data_index = -1
+            if length(x_array_copy[a]) != 0
+                distances = distance_fn(vec(x), x_array_copy[a], normalization)
+                manual_data_index = argmin(distances)
+            else
+                distances = distance_fn(vec(x), x_array_copy[2-a], normalization)
+                manual_data_index = argmin(distances)
+            end
             distance = 0.0
             if hardcoded
                 actual_return += actual_c

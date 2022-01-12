@@ -44,30 +44,37 @@ function mountaincar_run_online_experiments()
     oms_steps = []
     cmax_steps = []
     true_steps = []
+    rbms_steps = []
     rock_c_values = collect(0.02:0.002:0.03)
     for rock_c in rock_c_values
         ml_sub_steps = []
         oms_sub_steps = []
         cmax_sub_steps = []
         true_sub_steps = []
+        rbms_sub_steps = []
         for seed in seeds
-            println("MLE with rock_c ", rock_c, " seed ", seed)
-            push!(ml_sub_steps, mountaincar_run_online_model_search(
-                rock_c, num_eval_samples; max_likelihood = true, seed = seed,
+            # println("MLE with rock_c ", rock_c, " seed ", seed)
+            # push!(ml_sub_steps, mountaincar_run_online_model_search(
+            #     rock_c, num_eval_samples; max_likelihood = true, seed = seed,
+            #     debug = false,
+            # ))
+            # println("OMS with rock_c ", rock_c, " seed ", seed)
+            # push!(oms_sub_steps, mountaincar_run_online_model_search(
+            #     rock_c, num_eval_samples; optimistic = true, seed = seed,
+            #     debug = false,
+            # ))
+            # println("CMAX with rock_c ", rock_c, " seed ", seed)
+            # push!(cmax_sub_steps, mountaincar_run_cmax(
+            #     rock_c; seed = seed, debug = false,
+            # ))
+            # println("True with rock_c ", rock_c, " seed ", seed)
+            # push!(true_sub_steps, mountaincar_run_true(
+            #     rock_c; seed = seed, debug = false,
+            # ))
+            println("RBMS with rock_ ", rock_c, " seed ", seed)
+            push!(rbms_sub_steps, mountaincar_run_online_model_search(
+                rock_c, num_eval_samples; optimistic = false, seed = seed,
                 debug = false,
-            ))
-            println("OMS with rock_c ", rock_c, " seed ", seed)
-            push!(oms_sub_steps, mountaincar_run_online_model_search(
-                rock_c, num_eval_samples; optimistic = true, seed = seed,
-                debug = false,
-            ))
-            println("CMAX with rock_c ", rock_c, " seed ", seed)
-            push!(cmax_sub_steps, mountaincar_run_cmax(
-                rock_c; seed = seed, debug = false,
-            ))
-            println("True with rock_c ", rock_c, " seed ", seed)
-            push!(true_sub_steps, mountaincar_run_true(
-                rock_c; seed = seed, debug = false,
             ))
         end
         push!(ml_steps, ml_sub_steps)
