@@ -43,7 +43,7 @@ function run(
             performance += total_return
             all_transitions = vcat(all_transitions, transitions)
         end
-        println("Performance ", performance/m)
+        println("Cost to go ", performance/m)
         # Do rollouts in the real world using random policy to collect data
         for _ in 1:p
             random_policy, _ = random_policy_and_values(

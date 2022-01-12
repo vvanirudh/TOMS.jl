@@ -23,7 +23,11 @@ function WideTreeEnv(n_leaves::Int64, model::String, rng::MersenneTwister)
         second_bucket = collect(5+bucket_size+1:5+2*bucket_size)
         third_bucket = collect(5+2*bucket_size+1:5+3*bucket_size)
         fourth_bucket = collect(5+3*bucket_size+1:5+4*bucket_size)
-        return WideTreeEnv(n_leaves, left, right, first_parent, second_parent, first_bucket, second_bucket, third_bucket, fourth_bucket)
+        return WideTreeEnv(
+            n_leaves, left, right, first_parent, second_parent, 
+            first_bucket, second_bucket, third_bucket, 
+            fourth_bucket,
+        )
     elseif model == "good"
         left = 2
         right = 3
@@ -36,7 +40,11 @@ function WideTreeEnv(n_leaves::Int64, model::String, rng::MersenneTwister)
         second_bucket = leaves[bucket_size+1:2*bucket_size]
         third_bucket = leaves[2*bucket_size+1:3*bucket_size]
         fourth_bucket = leaves[3*bucket_size+1:4*bucket_size]
-        return WideTreeEnv(n_leaves, left, right, first_parent, second_parent, first_bucket, second_bucket, third_bucket, fourth_bucket)
+        return WideTreeEnv(
+            n_leaves, left, right, first_parent, second_parent,
+            first_bucket, second_bucket, third_bucket,
+            fourth_bucket,
+        )
     elseif model == "bad"
         # Just switch dynamics at the root
         left = 3
@@ -47,7 +55,11 @@ function WideTreeEnv(n_leaves::Int64, model::String, rng::MersenneTwister)
         second_bucket = collect(5+bucket_size+1:5+2*bucket_size)
         third_bucket = collect(5+2*bucket_size+1:5+3*bucket_size)
         fourth_bucket = collect(5+3*bucket_size+1:5+4*bucket_size)
-        return WideTreeEnv(n_leaves, left, right, first_parent, second_parent, first_bucket, second_bucket, third_bucket, fourth_bucket)
+        return WideTreeEnv(
+            n_leaves, left, right, first_parent, second_parent, 
+            first_bucket, second_bucket, third_bucket, 
+            fourth_bucket,
+        )
     end
 end
 
