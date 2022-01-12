@@ -39,7 +39,7 @@ end
 
 function mountaincar_run_online_experiments()
     num_eval_samples = 50
-    seeds = collect(1:5)
+    seeds = collect(1:10)
     ml_steps = []
     oms_steps = []
     cmax_steps = []
