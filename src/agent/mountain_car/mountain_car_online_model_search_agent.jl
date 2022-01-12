@@ -7,7 +7,7 @@ end
 function run(
     agent::MountainCarOnlineModelSearchAgent,
     rng::MersenneTwister;
-    max_steps = 5e3,
+    max_steps = 3e3,
     debug = false,
     max_likelihood = false,
     optimistic = false,
@@ -62,7 +62,7 @@ end
 function run_cmax(
     agent::MountainCarOnlineModelSearchAgent,
     rng::MersenneTwister;
-    max_steps = 5e3,
+    max_steps = 3e3,
     debug = false,
     cmax_threshold = 0.01,
 )
