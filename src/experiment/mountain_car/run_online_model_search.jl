@@ -38,13 +38,13 @@ function mountaincar_run_true(rock_c::Float64;
 end
 
 function mountaincar_run_online_experiments()
-    num_eval_samples = 10
-    seeds = collect(1:10)
+    num_eval_samples = 50
+    seeds = collect(1:5)
     ml_steps = []
     oms_steps = []
     cmax_steps = []
     true_steps = []
-    rock_c_values = collect(0.02:0.001:0.03)
+    rock_c_values = collect(0.02:0.002:0.03)
     for rock_c in rock_c_values
         ml_sub_steps = []
         oms_sub_steps = []
