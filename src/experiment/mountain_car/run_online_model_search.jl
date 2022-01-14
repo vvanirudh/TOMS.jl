@@ -47,7 +47,7 @@ function mountaincar_run_online_experiments()
     # true_steps = []
     # rbms_steps = []
     me_steps = []
-    rock_c_values = collect(0.02:0.001:0.03)
+    rock_c_values = collect(0.02:0.002:0.03)
     for rock_c in rock_c_values
         # ml_sub_steps = []
         # oms_sub_steps = []
