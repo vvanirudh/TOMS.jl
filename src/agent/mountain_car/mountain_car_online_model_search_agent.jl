@@ -12,6 +12,7 @@ function run(
     max_likelihood = false,
     optimistic = false,
     epsilon = 0.0,
+    model_evaluation = false,
 )
     # Start with initial policy
     start_params = MountainCarParameters(-0.0025, 3)
@@ -47,6 +48,7 @@ function run(
                     horizon;
                     debug = debug,
                     optimistic = optimistic,
+                    model_evaluation = model_evaluation,
                 )
             end
             if debug

@@ -18,6 +18,7 @@ function return_based_model_search(
     debug::Bool = false,
     eval_distance::Bool = false,
     optimistic::Bool = false,
+    model_evaluation::Bool = false,
 )
     params = true_params
     least_squares_params = get_least_squares_fit(mountaincar, params, data)
@@ -27,6 +28,19 @@ function return_based_model_search(
         if converged
             if optimistic
                 return mfmc_optimistic_evaluation(
+                    mountaincar,
+                    policy,
+                    p,
+                    horizon,
+                    x_matrices_array,
+                    x_next_array,
+                    cost_array,
+                    num_episodes_eval,
+                    0.01;
+                    debug = debug,
+                )
+            elseif model_evaluation
+                return mfmc_model_evaluation(
                     mountaincar,
                     policy,
                     p,
@@ -155,6 +169,7 @@ function run_return_based_model_search(
     debug = false,
     eval_distance = false,
     optimistic = false,
+    model_evaluation = false,
 )
     params = return_based_model_search(
         agent.model,
@@ -165,6 +180,7 @@ function run_return_based_model_search(
         debug = debug,
         eval_distance = eval_distance,
         optimistic = optimistic,
+        model_evaluation = model_evaluation,
     )
     println("Params found is ", params)
     run(agent, params; max_steps = max_steps)
