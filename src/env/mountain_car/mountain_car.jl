@@ -298,8 +298,8 @@ end
 
 function getCost(mountaincar::MountainCar, state::MountainCarState)
     if state.position < mountaincar.goal_position
-        # return abs(state.position - mountaincar.goal_position)
-        return 1.0
+        return 0.1 * abs(state.position - mountaincar.goal_position)
+        # return 1.0
     else
         return 0.0
     end
