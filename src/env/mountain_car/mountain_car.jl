@@ -297,11 +297,9 @@ function speed_dynamics(
 end
 
 function getCost(mountaincar::MountainCar, state::MountainCarState)
-    if state.position < mountaincar.goal_position - 0.25
-        # return 0.1 * abs(state.position - mountaincar.goal_position)
-        return 1.0
-    elseif state.position < mountaincar.goal_position
-        return 0.5
+    if state.position < mountaincar.goal_position
+        return abs(state.position - mountaincar.goal_position)^2
+        # return 1.0
     else
         return 0.0
     end
