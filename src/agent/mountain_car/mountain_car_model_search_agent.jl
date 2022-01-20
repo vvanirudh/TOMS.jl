@@ -36,7 +36,7 @@ function return_based_model_search(
                     x_next_array,
                     cost_array,
                     num_episodes_eval,
-                    0.005;
+                    0.015;
                     debug = debug,
                 )
             elseif model_evaluation
