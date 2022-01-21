@@ -97,11 +97,14 @@ end
 function run_true(
     agent::MountainCarOnlineModelSearchAgent,
     rng::MersenneTwister;
-    max_steps = 5e3,
+    max_steps = 3e3,
     debug = false,
 )
     start_params = true_params
-    policy, _, _ = value_iteration(agent.mountaincar, vec(start_params))
+    policy, _, converged = value_iteration(agent.mountaincar, vec(start_params))
+    if !converged && debug
+        println("Not converged with params ", vec(start_params))
+    end
     num_steps = 0.0
     state = init_random(agent.mountaincar, rng)
     actions = getActions(agent.mountaincar)
