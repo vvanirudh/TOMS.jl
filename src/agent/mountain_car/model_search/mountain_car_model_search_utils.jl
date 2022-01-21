@@ -250,7 +250,8 @@ function mfmc_model_evaluation(
                 c = cost_array[a][manual_data_index]
             else
                 # Use current model
-                x, c = step(mountaincar, x, actions[a], [-0.002, 3.5])
+                x, c = step(mountaincar, x, actions[a], params)
+                # x, c = step(mountaincar, x, actions[a], [-0.002, 3.5])
             end
             if checkGoal(mountaincar, x)
                 break
