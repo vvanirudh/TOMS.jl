@@ -79,8 +79,8 @@ end
 
 function MountainCar(rock_c::Float64; position_sigma::Float64 = 0.0)
     start_state = MountainCarState(-π / 6, 0)
-    position_discretization = 150 # 300 # 500
-    speed_discretization = 150 # 500 # 250 # new param
+    position_discretization = 500 # 150 # 300 # 500
+    speed_discretization = 500 # 150 # 500 # 250 # new param
     min_position = -1.2
     max_position = 0.5 # 0.6
     max_speed = 0.07  # 0.2
@@ -298,8 +298,8 @@ end
 
 function getCost(mountaincar::MountainCar, state::MountainCarState)
     if state.position < mountaincar.goal_position
-        return abs(state.position - mountaincar.goal_position)^4
-        # return 1.0
+        # return abs(state.position - mountaincar.goal_position)^4
+        return 1.0
     else
         return 0.0
     end
